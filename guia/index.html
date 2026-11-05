@@ -44,59 +44,91 @@ a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; border: none; }
 
 /* ================================================
-   HERO
+   HERO — editorial, full-height, left-aligned
 ================================================ */
 .hero {
   position: relative;
-  height: clamp(340px, 60vh, 560px);
+  height: 100vh; min-height: 580px;
   overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: flex-end; justify-content: flex-start;
 }
 .hero-bg {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: cover;
-  filter: blur(3px);
-  transform: scale(1.13);
+  filter: blur(2px) brightness(.7);
+  transform: scale(1.08);
   transition: opacity .6s;
 }
 .hero-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(to bottom, rgba(6,14,26,.1) 0%, rgba(6,14,26,.5) 100%);
+  background: linear-gradient(
+    to bottom,
+    rgba(4,9,15,.05) 0%,
+    rgba(4,9,15,.18) 38%,
+    rgba(4,9,15,.78) 72%,
+    rgba(4,9,15,.97) 100%
+  );
   pointer-events: none;
 }
 .hero-content {
   position: relative; z-index: 1;
-  text-align: center; padding: 0 28px;
-  display: flex; flex-direction: column; align-items: center; gap: 0;
+  text-align: left;
+  padding: 0 var(--co-pad-x) 80px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0;
+  max-width: 1000px;
 }
 .hero-eyebrow {
-  font-size: .7rem; letter-spacing: 3.5px; text-transform: uppercase;
-  color: var(--accent); margin-bottom: 14px;
+  font-family: var(--co-font-display);
+  font-size: .68rem; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 18px;
+  display: flex; align-items: center; gap: 10px;
+}
+.hero-eyebrow::before {
+  content: ''; display: block;
+  width: 32px; height: 1.5px; background: var(--accent); flex-shrink: 0;
 }
 .hero-title {
-  font-size: clamp(2rem, 5.5vw, 3.4rem);
-  font-weight: 800; letter-spacing: -1.5px; color: #eef9ff;
-  line-height: 1.05;
+  font-family: var(--co-font-display);
+  font-size: clamp(4rem, 10vw, 9rem);
+  font-weight: 900; letter-spacing: -3px; color: #eef9ff;
+  line-height: .9; margin-bottom: 20px;
 }
-.hero-title em { font-style: normal; color: var(--accent); }
+.hero-title em { font-style: italic; color: var(--accent); }
 .hero-sub {
-  margin-top: 14px; font-size: .9rem; color: var(--text2);
-  max-width: 480px;
+  font-size: .95rem; color: var(--text2);
+  max-width: 520px; line-height: 1.6;
 }
 .hero-badges {
   display: flex; flex-wrap: wrap; gap: 6px;
-  justify-content: center; margin-top: 22px;
+  justify-content: flex-start; margin-top: 24px;
 }
 .hero-badge {
-  font-size: .67rem; padding: 4px 12px;
-  border-radius: 20px;
+  font-family: var(--co-font-display);
+  font-size: .68rem; letter-spacing: .5px;
+  padding: 5px 14px; border-radius: 2px;
   background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
   color: var(--text2); backdrop-filter: blur(4px);
+  transition: border-color .15s, color .15s;
+}
+.hero-badge:hover { border-color: var(--accent); color: var(--accent); }
+.hero-scroll {
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-family: var(--co-font-display); font-size: .62rem; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255,255,255,.3);
+  animation: bobble 2.4s ease-in-out infinite;
+}
+.hero-scroll::after {
+  content: '↓'; font-size: 1rem; color: rgba(255,255,255,.25);
+}
+@keyframes bobble {
+  0%,100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(5px); }
 }
 .hero-credit {
   position: absolute; bottom: 8px; right: 12px; z-index: 1;
-  font-size: .62rem; color: rgba(255,255,255,.3);
+  font-size: .58rem; color: rgba(255,255,255,.22);
 }
 
 /* ================================================
@@ -113,7 +145,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
 }
 .frow + .frow { border-top: 1px solid rgba(26,48,80,.55); }
 .flbl {
-  font-size: .64rem; text-transform: uppercase; letter-spacing: 1.6px;
+  font-family: var(--co-font-display);
+  font-size: .64rem; text-transform: uppercase; letter-spacing: 2px;
   color: var(--muted2); min-width: 56px; flex-shrink: 0;
 }
 .chips {
@@ -179,70 +212,88 @@ button { font-family: inherit; cursor: pointer; border: none; }
 ================================================ */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
-  padding: 14px 20px 60px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  padding: 14px 20px 80px;
   max-width: 1600px; margin: 0 auto;
 }
 
 /* ================================================
-   CARD
+   CARD — editorial portrait, overlay style
 ================================================ */
 .card {
   position: relative; border-radius: var(--r);
   overflow: hidden;
   background: var(--s2); border: 1px solid var(--border);
   cursor: pointer;
-  display: flex; flex-direction: column;
+  aspect-ratio: 3/4;    /* portrait */
   transition: transform .22s, box-shadow .22s, border-color .22s;
 }
 .card:hover {
-  transform: translateY(-5px) scale(1.02);
+  transform: translateY(-5px) scale(1.015);
   border-color: var(--accent);
-  box-shadow: 0 20px 50px rgba(0,0,0,.6), 0 0 0 1px var(--accent);
+  box-shadow: 0 20px 50px rgba(0,0,0,.7), 0 0 0 1px var(--accent);
 }
 .card-img {
-  position: relative;
-  aspect-ratio: 4/3;
+  position: absolute; inset: 0;
   overflow: hidden;
-  flex-shrink: 0;
 }
-.card:hover .cimg { transform: scale(1.04); }
-.cimg { width: 100%; height: 100%; object-fit: cover; object-position: center; transition: transform .4s ease; }
+.card:hover .cimg { transform: scale(1.06); }
+.cimg { width: 100%; height: 100%; object-fit: cover; object-position: center; transition: transform .5s ease; }
 .cph {
   width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 3rem; color: var(--muted2);
+  font-size: 3.5rem; color: var(--muted2);
   background: linear-gradient(135deg, #0c2a40, #07182a);
 }
+/* Overlay pinned to card bottom, gradient fade */
 .coverlay {
-  background: var(--s2);
-  border-top: 1px solid var(--border);
-  padding: 10px 13px 12px;
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(
+    to top,
+    rgba(4,9,15,.97) 0%,
+    rgba(4,9,15,.82) 42%,
+    rgba(4,9,15,.3)  72%,
+    transparent      100%
+  );
+  padding: 52px 14px 16px;
+  pointer-events: none;
+}
+/* Eyebrow label: group */
+.cgroup {
+  font-family: var(--co-font-display);
+  font-size: .58rem; font-weight: 700; letter-spacing: 2.5px;
+  text-transform: uppercase; opacity: .8;
+  margin-bottom: 6px;
+}
+.ctags { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 8px; }
+.ctag {
+  font-family: var(--co-font-display);
+  font-size: .58rem; letter-spacing: .5px;
+  padding: 1px 7px; border-radius: 2px;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.14);
+  color: rgba(255,255,255,.7);
 }
 .csci {
-  font-style: italic; font-weight: 700; font-size: .88rem;
-  color: #eef9ff; line-height: 1.2; margin-bottom: 3px;
+  font-family: var(--co-font-display);
+  font-style: italic; font-weight: 700; font-size: 1.05rem;
+  color: #eef9ff; line-height: 1.1; margin-bottom: 3px;
 }
-.ccommon { font-size: .74rem; color: var(--accent); font-weight: 500; margin-bottom: 5px; min-height: 13px; }
-.ctags { display: flex; flex-wrap: wrap; gap: 3px; }
-.ctag {
-  font-size: .6rem; padding: 1px 7px; border-radius: 8px;
-  background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.12);
-  color: rgba(255,255,255,.65);
+.ccommon {
+  font-family: var(--co-font-display);
+  font-size: .78rem; color: var(--accent); font-weight: 600;
+  letter-spacing: .3px;
 }
-.ctag.p { background: var(--adim); border-color: var(--aglow); color: var(--accent); }
 .cribbon {
-  position: absolute; top: 0; left: 0; right: 0;
+  position: absolute; top: 0; left: 0; right: 0; z-index: 2;
   background: rgba(180, 100, 20, .82);
   backdrop-filter: blur(4px);
   color: #fff;
+  font-family: var(--co-font-display);
   font-size: .62rem; font-weight: 700; letter-spacing: 1.2px;
   padding: 4px 10px;
-  text-align: center;
-  text-transform: uppercase;
+  text-align: center; text-transform: uppercase;
   pointer-events: none;
-  border-radius: var(--r) var(--r) 0 0;
 }
 
 /* ================================================
@@ -367,8 +418,9 @@ button { font-family: inherit; cursor: pointer; border: none; }
 
 .spmain { padding: 28px 26px 0; }
 .spsci {
-  font-size: 1.9rem; font-style: italic; font-weight: 800;
-  color: #eef9ff; line-height: 1.05; margin-bottom: 5px;
+  font-family: var(--co-font-display);
+  font-size: 2.1rem; font-style: italic; font-weight: 800;
+  color: #eef9ff; line-height: 1.0; margin-bottom: 5px;
 }
 .spcommon { font-size: 1rem; color: var(--accent); font-weight: 500; margin-bottom: 16px; min-height: 22px; }
 .sptags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 18px; }
@@ -540,8 +592,11 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
   .spmain { padding: 18px 18px 0; }
   .tabarea { padding: 16px 18px 40px; }
 
-  .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 9px; padding: 9px; }
-  .hero { height: clamp(260px, 44vh, 380px); }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; padding: 10px 10px 60px; }
+  .hero { height: 100svh; min-height: 520px; }
+  .hero-content { padding: 0 20px 70px; }
+  .hero-title { letter-spacing: -2px; }
+  .hero-scroll { display: none; }
   .frow { padding: 8px 12px; }
   .sinput { width: 150px; }
   .sinput:focus { width: 170px; }
@@ -574,6 +629,7 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
     <p style="margin-top:14px;font-size:.75rem;color:rgba(255,255,255,.45);letter-spacing:.3px">Curador: <strong style="color:rgba(255,255,255,.65)">Gonzalo Bravo</strong></p>
     <button id="aboutBtn" style="margin-top:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);font-size:.72rem;padding:5px 16px;border-radius:20px;cursor:pointer;backdrop-filter:blur(4px);transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">ℹ️ Sobre esta guía</button>
   </div>
+  <div class="hero-scroll">scroll</div>
   <span class="hero-credit">📷 G. Bravo · CC BY-SA · Wikipedia</span>
 </section>
 
@@ -1139,12 +1195,10 @@ function cardHTML(t) {
       ${ph?`<img class="cimg" src="${ph.medium_url}" alt="${sn}" loading="lazy">`:`<div class="cph">${icon}</div>`}
     </div>
     <div class="coverlay">
+      ${sb?`<div class="cgroup" style="color:${col}">${sb}</div>`:''}
+      ${zs.length?`<div class="ctags">${zs.map(z=>`<span class="ctag">${z}</span>`).join('')}</div>`:''}
       <div class="csci">${sn}</div>
-      <div class="ccommon">${cn}</div>
-      <div class="ctags">
-        ${sb?`<span class="ctag p" style="color:${col};border-color:${col}40">${sb}</span>`:''}
-        ${zs.map(z=>`<span class="ctag">${z}</span>`).join('')}
-      </div>
+      ${cn?`<div class="ccommon">${cn}</div>`:''}
     </div>
   </div>`;
 }
