@@ -4,29 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Guía de Especies Submarinas · Mar Argentino</title>
+<!-- Design system compartido — culturaoceanica.org -->
+<link rel="stylesheet" href="/assets/co-theme.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <style>
 /* ================================================
-   TOKENS
+   TOKENS — Guía de Especies
+   Remapeo de variables locales → sistema co-theme
+   Para cambiar colores globales: editar /assets/co-theme.css
 ================================================ */
 :root {
-  --bg:      #060e1a;
-  --s1:      #0b1a2e;
+  --bg:      var(--co-navy);
+  --s1:      var(--co-navy-mid);
   --s2:      #0e2038;
-  --s3:      #122848;
-  --border:  #1a3050;
+  --s3:      var(--co-navy-light);
+  --border:  var(--co-navy-border);
   --border2: #1e3a5c;
-  --accent:  #00b4d8;
-  --adim:    rgba(0,180,216,.13);
-  --aglow:   rgba(0,180,216,.32);
-  --warm:    #f4a261;
-  --text:    #ddeef8;
-  --text2:   #92b8cc;
-  --muted:   #4e6a82;
-  --muted2:  #2e4a60;
-  --r:       14px;
-  --rsm:     8px;
+  --accent:  var(--co-teal);
+  --adim:    var(--co-teal-glow);
+  --aglow:   rgba(0,201,212,.32);
+  --warm:    var(--co-warm);
+  --text:    var(--co-white);
+  --text2:   var(--co-text-dim);
+  --muted:   var(--co-muted);
+  --muted2:  var(--co-muted-dark);
+  --r:       var(--co-radius-lg);
+  --rsm:     var(--co-radius);
 }
 
 /* ================================================
@@ -34,7 +38,7 @@
 ================================================ */
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
-body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.55; }
+body { font-family: var(--co-font-body); background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.55; }
 img { display: block; }
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; border: none; }

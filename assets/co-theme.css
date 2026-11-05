@@ -1,0 +1,151 @@
+/* ============================================================
+   CULTURA OCEÁNICA — Design System v1
+   Single source of truth for all pages on culturaoceanica.org
+
+   HOW TO USE IN A PAGE:
+     <link rel="stylesheet" href="/assets/co-theme.css">
+
+   Then in your page's local :root, remap your old names:
+     --accent: var(--co-teal);
+     --bg:     var(--co-navy);
+
+   Or use the tokens directly: color: var(--co-teal);
+
+   ADDING A NEW PAGE: just link this file. The tokens,
+   font imports, and base reset are inherited for free.
+   ============================================================ */
+
+/* ── FONTS ─────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700&family=Barlow:wght@300;400;500;600&display=swap');
+
+/* ── DESIGN TOKENS ──────────────────────────────────────────── */
+:root {
+
+  /* PALETTE — dark backgrounds */
+  --co-navy:         #04090f;   /* darkest bg */
+  --co-navy-mid:     #071525;   /* card / panel bg */
+  --co-navy-light:   #0c2040;   /* elevated surface */
+  --co-navy-border:  #1a3050;   /* border subtle */
+
+  /* PALETTE — accent */
+  --co-teal:         #00c9d4;   /* primary accent, links, highlights */
+  --co-teal-dark:    #007a85;   /* hover / darker variant */
+  --co-teal-glow:    rgba(0, 201, 212, 0.18);
+  --co-teal-border:  rgba(0, 201, 212, 0.12);
+
+  /* PALETTE — text */
+  --co-white:        #f0f8ff;   /* primary text */
+  --co-text-dim:     #92b8cc;   /* secondary text */
+  --co-muted:        #5a7a9a;   /* muted / disabled */
+  --co-muted-dark:   #3a5a7a;   /* very muted */
+
+  /* PALETTE — semantic */
+  --co-warm:         #f4a261;   /* warnings, conservation alerts */
+  --co-error:        #f07070;   /* errors */
+
+  /* TYPOGRAPHY */
+  --co-font-display: 'Barlow Condensed', sans-serif;
+  --co-font-body:    'Barlow', sans-serif;
+  --co-font-system:  system-ui, -apple-system, sans-serif;
+
+  /* SPACING — page chrome */
+  --co-pad-x:        60px;      /* desktop horizontal padding */
+  --co-pad-x-mob:    20px;      /* mobile horizontal padding */
+
+  /* SHAPE */
+  --co-radius:       4px;       /* default border-radius */
+  --co-radius-sm:    2px;       /* tight radius (chips, badges) */
+  --co-radius-lg:    12px;      /* cards, modals */
+
+  /* Z-INDEX SCALE */
+  --co-z-base:       1;
+  --co-z-dropdown:   50;
+  --co-z-sticky:     100;
+  --co-z-modal:      200;
+  --co-z-toast:      300;
+
+  /* TRANSITIONS */
+  --co-transition:   0.2s ease;
+}
+
+/* ── BASE RESET (minimal, non-destructive) ──────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ── SHARED UTILITY CLASSES ─────────────────────────────────── */
+
+/* Eyebrow / label text (uppercase, spaced) */
+.co-eyebrow {
+  font-family:    var(--co-font-display);
+  font-size:      0.7rem;
+  font-weight:    600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color:          var(--co-teal);
+  display:        flex;
+  align-items:    center;
+  gap:            10px;
+}
+.co-eyebrow::before {
+  content:    '';
+  display:    block;
+  width:      28px;
+  height:     1.5px;
+  background: var(--co-teal);
+  flex-shrink: 0;
+}
+
+/* Chip / filter pill */
+.co-chip {
+  padding:         6px 16px;
+  border:          1px solid var(--co-teal-border);
+  border-radius:   var(--co-radius-sm);
+  font-family:     var(--co-font-display);
+  font-size:       0.8rem;
+  font-weight:     600;
+  letter-spacing:  1px;
+  text-transform:  uppercase;
+  color:           rgba(240, 248, 255, 0.5);
+  background:      transparent;
+  cursor:          pointer;
+  transition:      all var(--co-transition);
+}
+.co-chip:hover,
+.co-chip.on {
+  background:    var(--co-teal);
+  color:         var(--co-navy);
+  border-color:  var(--co-teal);
+}
+
+/* Back / nav link */
+.co-back {
+  display:         inline-flex;
+  align-items:     center;
+  gap:             8px;
+  font-family:     var(--co-font-display);
+  font-size:       0.8rem;
+  font-weight:     700;
+  letter-spacing:  2px;
+  text-transform:  uppercase;
+  color:           var(--co-teal);
+  background:      var(--co-teal-glow);
+  border:          1px solid var(--co-teal-border);
+  padding:         10px 20px;
+  border-radius:   99px;
+  text-decoration: none;
+  transition:      all var(--co-transition);
+}
+.co-back:hover {
+  background: var(--co-teal);
+  color:      var(--co-navy);
+}
+
+/* ── RESPONSIVE HELPERS ─────────────────────────────────────── */
+@media (max-width: 700px) {
+  :root {
+    --co-pad-x: var(--co-pad-x-mob);
+  }
+}
