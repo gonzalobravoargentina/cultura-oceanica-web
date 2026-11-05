@@ -43,28 +43,7 @@ img { display: block; }
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; border: none; }
 
-/* ================================================
-   SITE NAV
-================================================ */
-.sitenav {
-  position: absolute; top: 0; left: 0; right: 0; z-index: 10;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 22px var(--co-pad-x);
-}
-.sitenav-brand {
-  font-family: var(--co-font-display);
-  font-size: .85rem; font-weight: 700; letter-spacing: 2.5px;
-  text-transform: uppercase; color: #fff;
-}
-.sitenav-brand span { color: var(--accent); }
-.sitenav-links { display: flex; gap: 28px; }
-.sitenav-links a {
-  font-family: var(--co-font-display);
-  font-size: .72rem; letter-spacing: 2px; text-transform: uppercase;
-  color: rgba(255,255,255,.45); font-weight: 700;
-  transition: color .15s;
-}
-.sitenav-links a:hover, .sitenav-links a.active { color: #fff; }
+/* sitenav CSS → compartido en /assets/co-theme.css */
 
 /* Grid section heading */
 .grid-heading {
@@ -303,7 +282,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
   overflow: hidden;
 }
 .card:hover .cimg { transform: scale(1.06); }
-.cimg { width: 100%; height: 100%; object-fit: cover; object-position: center; transition: transform .5s ease; }
+.cimg { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; transition: transform .5s ease; }
 .cph {
   width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
@@ -633,6 +612,51 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
 .aloading { font-size: .82rem; color: var(--muted); font-style: italic; }
 
 /* ================================================
+   FOOTER
+================================================ */
+.site-footer {
+  background: var(--s1);
+  border-top: 1px solid var(--border);
+  padding: 40px var(--co-pad-x) 36px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px; flex-wrap: wrap;
+}
+.footer-stats {
+  display: flex; gap: 40px; flex-wrap: wrap;
+}
+.fstat {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.fstat-num {
+  font-family: var(--co-font-display);
+  font-size: 2.4rem; font-weight: 900; letter-spacing: -1px;
+  color: var(--accent); line-height: 1;
+}
+.fstat-label {
+  font-family: var(--co-font-display);
+  font-size: .58rem; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted);
+}
+.footer-sdg {
+  display: flex; align-items: center; gap: 12px;
+  opacity: .7;
+}
+.footer-sdg img {
+  width: 46px; height: 46px; object-fit: contain; border-radius: 4px;
+}
+.footer-sdg-text {
+  font-family: var(--co-font-display);
+  font-size: .58rem; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text2);
+  max-width: 100px; line-height: 1.4;
+}
+@media (max-width: 740px) {
+  .site-footer { padding: 28px 16px; gap: 20px; }
+  .footer-stats { gap: 24px; }
+  .fstat-num { font-size: 1.8rem; }
+}
+
+/* ================================================
    RESPONSIVE
 ================================================ */
 @media (max-width: 740px) {
@@ -769,6 +793,33 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
 <div class="grid" id="grid">
   <div class="cmsg"><div class="spin"></div>Cargando especies desde iNaturalist…</div>
 </div>
+
+<!-- ════════════════════ FOOTER ════════════════════ -->
+<footer class="site-footer">
+  <div class="footer-stats">
+    <div class="fstat">
+      <span class="fstat-num" id="ftSpecies">—</span>
+      <span class="fstat-label">Especies registradas</span>
+    </div>
+    <div class="fstat">
+      <span class="fstat-num" id="ftObs">—</span>
+      <span class="fstat-label">Observaciones en iNat</span>
+    </div>
+    <div class="fstat">
+      <span class="fstat-num" id="ftGroups">—</span>
+      <span class="fstat-label">Grupos taxonómicos</span>
+    </div>
+    <div class="fstat">
+      <span class="fstat-num">3</span>
+      <span class="fstat-label">Zonas de hábitat</span>
+    </div>
+  </div>
+  <div class="footer-sdg">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Sustainable_Development_Goal_14.png/120px-Sustainable_Development_Goal_14.png"
+         alt="ODS 14 — Vida Submarina">
+    <span class="footer-sdg-text">Esta guía contribuye al ODS 14</span>
+  </div>
+</footer>
 
 <!-- ════════════════════ ABOUT MODAL ════════════════════ -->
 <div id="aboutOverlay" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(4,10,22,.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px">
@@ -1071,6 +1122,7 @@ async function loadGuide() {
     fetchCnames();
     fetchCooc();
     fetchDescs();
+    fetchFooterStats();
   } catch {
     grid.innerHTML = '<div class="cmsg">⚠️ Error al cargar la guía. Verificá tu conexión.</div>';
   }
@@ -1088,6 +1140,28 @@ async function fetchDescs() {
     const r = await fetch('./descriptions.json');
     if (r.ok) { descData = await r.json(); }
   } catch {}
+}
+
+async function fetchFooterStats() {
+  /* Stats locales */
+  const ftSp = document.getElementById('ftSpecies');
+  const ftOb = document.getElementById('ftObs');
+  const ftGr = document.getElementById('ftGroups');
+  if (ftSp) ftSp.textContent = taxa.length;
+  if (ftGr) {
+    const groups = new Set(taxa.map(mainG).filter(Boolean));
+    ftGr.textContent = groups.size;
+  }
+  /* Observaciones en iNat (sólo count) */
+  if (ftOb) {
+    try {
+      const ids = taxa.map(t=>t.taxon_id).join(',');
+      const r = await fetch(`${V1_API}/observations?taxon_id=${ids}&place_id=97389&quality_grade=research&per_page=0`);
+      const d = await r.json();
+      const total = d.total_results || 0;
+      ftOb.textContent = total >= 1000 ? (total/1000).toFixed(1)+'K+' : total;
+    } catch { ftOb.textContent = '—'; }
+  }
 }
 
 async function fetchCnames() {
@@ -1655,7 +1729,7 @@ async function initMap(taxonId) {
   try {
     // Fetch up to 200 research-grade observations (Argentina + alrededores)
     // Bounding box: Sudamérica + océanos circundantes
-    const url = `${V1_API}/observations?taxon_id=${taxonId}&quality_grade=research&per_page=200&order=desc&order_by=created_at&geoprivacy=open&swlat=-60&swlng=-82&nelat=14&nelng=-25`;
+    const url = `${V1_API}/observations?taxon_id=${taxonId}&quality_grade=research,needs_id&per_page=200&order=desc&order_by=created_at&swlat=-60&swlng=-73&nelat=-22&nelng=-50`;
     const r = await fetch(url);
     const d = await r.json();
     const obs = (d.results||[]).filter(o=>o.geojson);

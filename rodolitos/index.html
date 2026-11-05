@@ -19,9 +19,11 @@
   --panel:  var(--co-navy-mid);
   --ink:    var(--co-white);
   --muted:  var(--co-text-dim);
-  --brand:  var(--co-teal);       /* antes: #fff574 amarillo → ahora teal */
+  --brand:  #fff574;              /* amarillo del logo Habitar las Algas — solo rodolitos */
   --border: var(--co-navy-border);
   --pink:   #dba0b4;              /* color específico rodolitos — sin cambio */
+  /* En rodolitos el acento de la nav también es amarillo */
+  --co-teal: #fff574;
 }
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 var(--co-font-body)}button,a{-webkit-tap-highlight-color:transparent}button{font:inherit;cursor:pointer}button:disabled{cursor:wait;opacity:.7}button:focus-visible,a:focus-visible,canvas:focus-visible{outline:2px solid var(--brand);outline-offset:4px}a{color:var(--brand);text-underline-offset:4px}button{border:1px solid var(--border);border-radius:24px;background:var(--panel);color:var(--ink);padding:10px 17px;min-height:44px}button:hover{border-color:var(--brand)}button.active,button[aria-pressed=true]{color:var(--bg);background:var(--brand);border-color:var(--brand)}.primary{background:var(--brand);color:var(--bg);border-color:var(--brand);padding:14px 27px}.brand{display:block;width:136px;height:76px;object-fit:contain}.links{display:flex;flex-wrap:wrap;gap:12px 26px}.links a{font-size:13px}h1,h2,p{margin:0}h1,h2{font-weight:700;font-family:var(--co-font-display)}.eyebrow{font-family:var(--co-font-display);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}[hidden]{display:none!important}
 #entry{min-height:680px;height:100dvh;max-width:1440px;margin:auto;display:flex;flex-direction:column;padding:24px 6% 26px;background:radial-gradient(ellipse at 75% 48%,#60334738,transparent 48%)}.entry-content{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center;padding:12px 0}.entry-copy{max-width:480px}.entry-copy h1{font-size:clamp(42px,6vw,76px);line-height:1.05;margin:14px 0 20px;letter-spacing:-1px}.entry-copy p{font-size:17px;max-width:420px;color:var(--muted)}.entry-copy .primary{margin-top:28px}.entry-art{width:100%;max-height:460px;object-fit:contain}.entry-bottom{display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}.small{font-size:12px;color:var(--muted)}#status{min-height:24px;margin-top:12px;font-size:13px;color:var(--muted)}
@@ -32,6 +34,14 @@
 </style>
 </head>
 <body>
+<nav class="sitenav">
+  <a class="sitenav-brand" href="/">CULTURA <span>OCEÁNICA</span></a>
+  <div class="sitenav-links">
+    <a href="/guia/">Guía</a>
+    <a href="/rodolitos/" class="active">Rodolitos</a>
+    <a href="/">Acerca</a>
+  </div>
+</nav>
 <section id="entry" aria-labelledby="entry-title">
 <img class="brand" src="assets/logo-habitar-algas.svg" alt="Habitar las Algas">
 <div class="entry-content"><div class="entry-copy"><div class="eyebrow">EXPLORACIÓN INTERACTIVA</div><h1 id="entry-title">Rodolitos</h1><p>Una mirada a sus ramas y a los entramados que forman en el fondo marino.</p><button class="primary" id="enter">Explorar en 3D →</button><div id="status" role="status" aria-live="polite"></div></div><img class="entry-art" src="assets/rodolito-portada.png" alt="Reconstrucción de un rodolito rosado con ramificaciones irregulares y puntas claras"></div>

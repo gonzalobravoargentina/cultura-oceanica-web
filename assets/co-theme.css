@@ -143,6 +143,48 @@
   color:      var(--co-navy);
 }
 
+/* ── SITE NAV (shared across all pages) ─────────────────────── */
+.sitenav {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 22px var(--co-pad-x);
+}
+.sitenav-brand {
+  font-family:    var(--co-font-display);
+  font-size:      .85rem;
+  font-weight:    700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color:          #fff;
+  text-decoration: none;
+}
+.sitenav-brand span {
+  color: var(--co-teal);
+}
+.sitenav-links {
+  display: flex; gap: 28px;
+}
+.sitenav-links a {
+  font-family:    var(--co-font-display);
+  font-size:      .72rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color:          rgba(255,255,255,.45);
+  font-weight:    700;
+  text-decoration: none;
+  transition:     color var(--co-transition);
+}
+.sitenav-links a:hover,
+.sitenav-links a.active {
+  color: #fff;
+}
+@media (max-width: 700px) {
+  .sitenav { padding: 16px 20px; }
+  .sitenav-brand { font-size: .78rem; }
+  .sitenav-links { gap: 16px; }
+  .sitenav-links a { font-size: .65rem; }
+}
+
 /* ── RESPONSIVE HELPERS ─────────────────────────────────────── */
 @media (max-width: 700px) {
   :root {
