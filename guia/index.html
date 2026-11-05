@@ -175,7 +175,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
    FILTER BAR
 ================================================ */
 .fbar {
-  position: sticky; top: 0; z-index: 50;
+  position: sticky; top: 52px; z-index: 50;
   background: rgba(6,14,26,.97); backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
 }
@@ -206,7 +206,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
   border: 1px solid var(--border); background: transparent;
   color: var(--text2);
   font-family: var(--co-font-display);
-  font-size: .75rem; font-weight: 700; letter-spacing: 1px;
+  font-size: .82rem; font-weight: 700; letter-spacing: 1px;
   text-transform: uppercase; white-space: nowrap;
   transition: border-color .15s, color .15s, background .15s, box-shadow .15s;
 }
@@ -282,7 +282,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
   overflow: hidden;
 }
 .card:hover .cimg { transform: scale(1.06); }
-.cimg { width: 100%; height: 100%; object-fit: contain; object-position: center; background: #040c18; transition: transform .5s ease; }
+.cimg { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; transition: transform .5s ease; }
 .cph {
   width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
@@ -641,19 +641,8 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
   display: flex; align-items: center; gap: 12px;
   opacity: .7;
 }
-.sdg14-badge {
-  display: flex; align-items: center; gap: 5px;
-  background: #0A97D9; border-radius: 4px;
-  padding: 6px 10px; flex-shrink: 0;
-}
-.sdg14-num {
-  font-family: var(--co-font-display); font-size: 1.5rem;
-  font-weight: 900; line-height: 1; color: #fff;
-}
-.sdg14-label {
-  font-family: var(--co-font-display); font-size: .42rem;
-  font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-  line-height: 1.4; color: #fff;
+.sdg14-img {
+  width: 52px; height: 52px; object-fit: contain; border-radius: 4px; flex-shrink: 0;
 }
 .footer-sdg-text {
   font-family: var(--co-font-display);
@@ -707,6 +696,15 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
   .sinput:focus { width: 170px; }
   .sinput-full { width: 100% !important; }
   .frow-search { padding: 7px 12px; }
+  .fbar { top: 48px; }
+  /* cards: 2 columns on mobile */
+  .card { aspect-ratio: 2/3; }
+  /* hero: safe area at bottom for mobile browser chrome */
+  .hero-content { padding: 0 20px calc(70px + env(safe-area-inset-bottom)); }
+  /* footer stacks on mobile */
+  .site-footer { flex-direction: column; align-items: flex-start; }
+  /* hide hover effects on touch */
+  .card:hover { transform: none; box-shadow: none; }
 }
 </style>
 </head>
@@ -757,9 +755,9 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
     <span class="flbl">Ambiente</span>
     <div class="chips" id="zonaChips">
       <button class="chip on" data-zona="all">Todos</button>
-      <button class="chip" data-zona="intermareal">🌊 Intermareal</button>
-      <button class="chip" data-zona="submareal">🤿 Submareal</button>
-      <button class="chip" data-zona="columna de agua">〰️ Columna de agua</button>
+      <button class="chip" data-zona="intermareal">Intermareal</button>
+      <button class="chip" data-zona="submareal">Submareal</button>
+      <button class="chip" data-zona="columna de agua">Columna de agua</button>
     </div>
   </div>
   <!-- Row 2: Tipo de fondo -->
@@ -826,10 +824,7 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
     </div>
   </div>
   <div class="footer-sdg">
-    <div class="sdg14-badge">
-      <span class="sdg14-num">14</span>
-      <span class="sdg14-label">VIDA<br>SUBMARINA</span>
-    </div>
+    <img class="sdg14-img" src="/assets/sdg14.png" alt="ODS 14 — Vida Submarina">
     <span class="footer-sdg-text">Esta guía contribuye al ODS 14</span>
   </div>
 </footer>
