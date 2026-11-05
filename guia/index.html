@@ -44,6 +44,66 @@ a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; border: none; }
 
 /* ================================================
+   SITE NAV
+================================================ */
+.sitenav {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 22px var(--co-pad-x);
+}
+.sitenav-brand {
+  font-family: var(--co-font-display);
+  font-size: .85rem; font-weight: 700; letter-spacing: 2.5px;
+  text-transform: uppercase; color: #fff;
+}
+.sitenav-brand span { color: var(--accent); }
+.sitenav-links { display: flex; gap: 28px; }
+.sitenav-links a {
+  font-family: var(--co-font-display);
+  font-size: .72rem; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(255,255,255,.45); font-weight: 700;
+  transition: color .15s;
+}
+.sitenav-links a:hover, .sitenav-links a.active { color: #fff; }
+
+/* Grid section heading */
+.grid-heading {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 22px 20px 4px; max-width: 1600px; margin: 0 auto;
+}
+.grid-heading-title {
+  font-family: var(--co-font-display);
+  font-size: 1.5rem; font-weight: 900; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text);
+}
+.grid-heading-meta {
+  font-family: var(--co-font-display);
+  font-size: .68rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Card number badge */
+.cnum {
+  position: absolute; top: 10px; right: 11px; z-index: 3;
+  font-family: var(--co-font-display);
+  font-size: .58rem; font-weight: 700; letter-spacing: 1px;
+  color: rgba(255,255,255,.35);
+}
+
+/* CTA button in hero */
+.hero-cta {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--co-font-display);
+  font-size: .82rem; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase;
+  background: var(--accent); color: var(--bg);
+  padding: 14px 28px; border-radius: var(--rsm);
+  cursor: pointer; border: none; margin-top: 28px;
+  transition: opacity .15s, transform .15s;
+}
+.hero-cta:hover { opacity: .88; transform: translateY(-2px); }
+
+/* ================================================
    HERO — editorial, full-height, left-aligned
 ================================================ */
 .hero {
@@ -93,8 +153,9 @@ button { font-family: inherit; cursor: pointer; border: none; }
   font-size: clamp(4rem, 10vw, 9rem);
   font-weight: 900; letter-spacing: -3px; color: #eef9ff;
   line-height: .9; margin-bottom: 20px;
+  text-transform: uppercase;
 }
-.hero-title em { font-style: italic; color: var(--accent); }
+.hero-title em { font-style: normal; color: var(--accent); }
 .hero-sub {
   font-size: .95rem; color: var(--text2);
   max-width: 520px; line-height: 1.6;
@@ -162,16 +223,19 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .chips::-webkit-scrollbar { display: none; }
 .chip {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 13px; border-radius: 20px;
-  border: 1px solid var(--border); background: var(--s1);
-  color: var(--text2); font-size: .78rem; white-space: nowrap;
+  padding: 5px 14px; border-radius: 2px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text2);
+  font-family: var(--co-font-display);
+  font-size: .75rem; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; white-space: nowrap;
   transition: border-color .15s, color .15s, background .15s, box-shadow .15s;
 }
 .chip:hover { border-color: var(--accent); color: var(--accent); }
 .chip.on {
   background: var(--accent); border-color: var(--accent);
-  color: #fff; font-weight: 700;
-  box-shadow: 0 0 16px var(--aglow);
+  color: var(--bg); font-weight: 700;
+  box-shadow: 0 0 14px var(--aglow);
 }
 .cdot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
@@ -597,6 +661,12 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
   .hero-content { padding: 0 20px 70px; }
   .hero-title { letter-spacing: -2px; }
   .hero-scroll { display: none; }
+  .sitenav { padding: 16px 20px; }
+  .sitenav-brand { font-size: .78rem; }
+  .sitenav-links { gap: 16px; }
+  .sitenav-links a { font-size: .65rem; }
+  .grid-heading { padding: 16px 10px 4px; }
+  .grid-heading-title { font-size: 1.1rem; }
   .frow { padding: 8px 12px; }
   .sinput { width: 150px; }
   .sinput:focus { width: 170px; }
@@ -607,6 +677,16 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
 </head>
 <body>
 
+<!-- ════════════════════ SITE NAV ════════════════════ -->
+<nav class="sitenav">
+  <a class="sitenav-brand" href="/">CULTURA <span>OCEÁNICA</span></a>
+  <div class="sitenav-links">
+    <a href="/guia/" class="active">Guía</a>
+    <a href="/rodolitos/">Rodolitos</a>
+    <a href="#aboutOverlay" id="aboutBtn">Acerca</a>
+  </div>
+</nav>
+
 <!-- ════════════════════ HERO ════════════════════ -->
 <section class="hero">
   <img class="hero-bg" id="heroBg"
@@ -615,19 +695,12 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
   <div class="hero-overlay"></div>
   <div class="hero-content">
     <p class="hero-eyebrow">Costa Patagónica · Mar Argentino</p>
-    <h1 class="hero-title">Guía de <em>Especies</em><br>Submarinas</h1>
-    <p class="hero-sub">Algas, invertebrados y peces de los fondos marinos de la Argentina</p>
-    <div class="hero-badges">
-      <a class="hero-badge" href="https://ibiomar.conicet.gov.ar/" target="_blank" style="text-decoration:none">IBIOMAR · CONICET</a>
-      <a class="hero-badge" href="https://www.unp.edu.ar/" target="_blank" style="text-decoration:none">UNPSJB</a>
-      <a class="hero-badge" href="https://www.proyectosub.org.ar/" target="_blank" style="text-decoration:none">ProyectoSub</a>
-      <a class="hero-badge" href="https://www.proyectoarrecife.com.ar/" target="_blank" style="text-decoration:none">Proyectoarrecife</a>
-      <a class="hero-badge" href="https://www.argentinat.org/" target="_blank" style="text-decoration:none">iNaturalist</a>
-      <a class="hero-badge" href="https://es.wikipedia.org/" target="_blank" style="text-decoration:none">Wikipedia</a>
-      <a class="hero-badge" href="https://creativecommons.org/licenses/by-sa/4.0/deed.es" target="_blank" style="text-decoration:none">CC BY-SA</a>
-    </div>
-    <p style="margin-top:14px;font-size:.75rem;color:rgba(255,255,255,.45);letter-spacing:.3px">Curador: <strong style="color:rgba(255,255,255,.65)">Gonzalo Bravo</strong></p>
-    <button id="aboutBtn" style="margin-top:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);font-size:.72rem;padding:5px 16px;border-radius:20px;cursor:pointer;backdrop-filter:blur(4px);transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">ℹ️ Sobre esta guía</button>
+    <h1 class="hero-title">Guía de <em>Especies</em> Submarinas</h1>
+    <p class="hero-sub">Algas, invertebrados y peces documentados en los fondos rocosos del Mar Argentino mediante buceo científico.</p>
+    <button class="hero-cta" onclick="document.querySelector('.fbar').scrollIntoView({behavior:'smooth'})">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Explorar especies
+    </button>
   </div>
   <div class="hero-scroll">scroll</div>
   <span class="hero-credit">📷 G. Bravo · CC BY-SA · Wikipedia</span>
@@ -686,8 +759,11 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
   </div>
 </div>
 
-<!-- ════════════════════ STATS ════════════════════ -->
-<div class="statsbar" id="statsbar"></div>
+<!-- ════════════════════ SECTION HEADING ════════════════════ -->
+<div class="grid-heading">
+  <span class="grid-heading-title">Especies</span>
+  <span class="grid-heading-meta" id="statsbar"></span>
+</div>
 
 <!-- ════════════════════ GRID ════════════════════ -->
 <div class="grid" id="grid">
@@ -1165,10 +1241,10 @@ function renderGrid() {
   const list = filtered().sort(taxoSort);
   const pend = list.filter(t=>(t.guide_section_ids||[]).length===0).length;
   const statsbar = document.getElementById('statsbar');
-  statsbar.innerHTML = `<strong>${list.length}</strong> de ${taxa.length} especies &nbsp;·&nbsp; <span style="color:var(--warm)">${pend} sin ficha</span>`;
+  statsbar.innerHTML = `${list.length} registros · iNaturalist`;
   const grid = document.getElementById('grid');
   if (!list.length) { grid.innerHTML='<div class="cmsg">No se encontraron especies.</div>'; return; }
-  grid.innerHTML = list.map(cardHTML).join('');
+  grid.innerHTML = list.map((t, i) => cardHTML(t, i)).join('');
   grid.querySelectorAll('.card').forEach(el => {
     el.addEventListener('click', () => {
       const t = taxa.find(x=>String(x.id)===el.dataset.id);
@@ -1180,22 +1256,27 @@ function renderGrid() {
 /* ────────────────────────────────────────────────
    CARD HTML
 ──────────────────────────────────────────────── */
-function cardHTML(t) {
+function cardHTML(t, i) {
   const ph = (t.guide_photos||[])[0];
   const sn = sci(t);
   const cn = cnames[t.taxon_id]||'';
+  const mg = mainG(t);
   const sb = subG(t);
   const zs = zonas(t);
-  const pend = (t.guide_section_ids||[]).length===0;
-  const icon = mainG(t)==='Peces'?'🐟':mainG(t)==='Algas'?'🌿':'🦀';
+  const icon = mg==='Peces'?'🐟':mg==='Algas'?'🌿':'🦀';
   const col  = scol(sb);
+  /* group label: "PECES" or "INVERTEBRADOS · CEFALÓPODOS" */
+  const glabel = sb ? `${mg} · ${sb}` : mg;
+  const gcol   = scol(mg);
+  const num = String(i+1).padStart(2,'0');
   return `
   <div class="card" data-id="${t.id}">
     <div class="card-img">
       ${ph?`<img class="cimg" src="${ph.medium_url}" alt="${sn}" loading="lazy">`:`<div class="cph">${icon}</div>`}
     </div>
+    <span class="cnum">${num}</span>
     <div class="coverlay">
-      ${sb?`<div class="cgroup" style="color:${col}">${sb}</div>`:''}
+      ${glabel?`<div class="cgroup" style="color:${gcol}">${glabel}</div>`:''}
       ${zs.length?`<div class="ctags">${zs.map(z=>`<span class="ctag">${z}</span>`).join('')}</div>`:''}
       <div class="csci">${sn}</div>
       ${cn?`<div class="ccommon">${cn}</div>`:''}
@@ -1644,7 +1725,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSpecies();});
 ──────────────────────────────────────────────── */
 /* About modal */
 const aboutOverlay = document.getElementById('aboutOverlay');
-document.getElementById('aboutBtn').addEventListener('click', () => {
+document.getElementById('aboutBtn').addEventListener('click', (e) => {
+  e.preventDefault();
   aboutOverlay.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 });
