@@ -145,9 +145,13 @@
 
 /* ── SITE NAV (shared across all pages) ─────────────────────── */
 .sitenav {
-  position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   display: flex; justify-content: space-between; align-items: center;
-  padding: 22px var(--co-pad-x);
+  padding: 16px var(--co-pad-x);
+  background: rgba(4, 9, 15, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,.06);
 }
 .sitenav-brand {
   font-family:    var(--co-font-display);

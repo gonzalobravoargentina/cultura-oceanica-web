@@ -282,7 +282,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
   overflow: hidden;
 }
 .card:hover .cimg { transform: scale(1.06); }
-.cimg { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; transition: transform .5s ease; }
+.cimg { width: 100%; height: 100%; object-fit: contain; object-position: center; background: #040c18; transition: transform .5s ease; }
 .cph {
   width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
@@ -641,8 +641,19 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
   display: flex; align-items: center; gap: 12px;
   opacity: .7;
 }
-.footer-sdg img {
-  width: 46px; height: 46px; object-fit: contain; border-radius: 4px;
+.sdg14-badge {
+  display: flex; align-items: center; gap: 5px;
+  background: #0A97D9; border-radius: 4px;
+  padding: 6px 10px; flex-shrink: 0;
+}
+.sdg14-num {
+  font-family: var(--co-font-display); font-size: 1.5rem;
+  font-weight: 900; line-height: 1; color: #fff;
+}
+.sdg14-label {
+  font-family: var(--co-font-display); font-size: .42rem;
+  font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  line-height: 1.4; color: #fff;
 }
 .footer-sdg-text {
   font-family: var(--co-font-display);
@@ -815,8 +826,10 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
     </div>
   </div>
   <div class="footer-sdg">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Sustainable_Development_Goal_14.png/120px-Sustainable_Development_Goal_14.png"
-         alt="ODS 14 — Vida Submarina">
+    <div class="sdg14-badge">
+      <span class="sdg14-num">14</span>
+      <span class="sdg14-label">VIDA<br>SUBMARINA</span>
+    </div>
     <span class="footer-sdg-text">Esta guía contribuye al ODS 14</span>
   </div>
 </footer>
@@ -1719,8 +1732,8 @@ async function initMap(taxonId) {
   if(!window.L) return;
   if(leafMap){leafMap.remove();leafMap=null;}
   leafMap = L.map('spMap',{zoomControl:true}).setView([-40,-62.5],4);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-    attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:18
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',{
+    attribution:'Esri, Garmin, GEBCO, NOAA',maxZoom:13
   }).addTo(leafMap);
   setTimeout(()=>leafMap?.invalidateSize(),120);
 
