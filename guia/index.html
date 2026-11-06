@@ -1124,7 +1124,15 @@ async function loadGuide() {
   try {
     const r = await fetch(`${OLD_API}/guide_taxa.json?guide_id=${GUIDE_ID}&per_page=200`);
     const d = await r.json();
-    taxa = (d.guide_taxa||[]).sort((a,b)=>sci(a).localeCompare(sci(b)));
+    taxa = (d.guide_taxa||[])
+      .map(t => {
+        // Sort guide_photos by position so [0] is always the primary photo
+        if (t.guide_photos?.length > 1) {
+          t.guide_photos = t.guide_photos.slice().sort((a,b) => (a.position||999) - (b.position||999));
+        }
+        return t;
+      })
+      .sort((a,b) => sci(a).localeCompare(sci(b)));
     buildSubChips('all');
     renderGrid();
     fetchCnames();
@@ -1748,17 +1756,18 @@ async function initMap(taxonId) {
       });
 
       const popupHtml = `
-        <div style="min-width:160px;font-family:inherit">
-          ${thumb ? `<img src="${thumb}" style="width:100%;border-radius:6px;margin-bottom:6px;display:block">` : ''}
-          <div style="font-size:.75rem;color:#aaa;margin-bottom:2px">${date}${place?' · '+place:''}</div>
-          ${user ? `<div style="font-size:.73rem;color:#ccc;margin-bottom:6px">@${user}</div>` : ''}
+        <div style="width:160px;font-family:inherit">
+          ${thumb ? `<img src="${thumb}" style="width:60px;height:60px;object-fit:cover;border-radius:5px;float:left;margin:0 8px 4px 0;display:block">` : ''}
+          <div style="font-size:.72rem;color:#aaa;line-height:1.4">${date}${place?' · '+place:''}</div>
+          ${user ? `<div style="font-size:.7rem;color:#ccc;margin-bottom:4px">@${user}</div>` : ''}
+          <div style="clear:both"></div>
           <a href="${obsUrl}" target="_blank"
-             style="display:block;text-align:center;background:#00b4d8;color:#fff;border-radius:6px;padding:9px 10px;font-size:.8rem;font-weight:700;text-decoration:none;margin-top:4px">
+             style="display:block;text-align:center;background:#00b4d8;color:#fff;border-radius:6px;padding:7px 8px;font-size:.75rem;font-weight:700;text-decoration:none;margin-top:6px">
             Ver en iNaturalist ↗
           </a>
         </div>`;
 
-      marker.bindPopup(popupHtml, {maxWidth:220, className:'inat-popup', keepInView:true, autoPan:true});
+      marker.bindPopup(popupHtml, {maxWidth:180, className:'inat-popup', keepInView:true, autoPan:true});
       marker.addTo(leafMap);
     });
 
