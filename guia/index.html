@@ -269,7 +269,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
   overflow: hidden;
   background: var(--s2); border: 1px solid var(--border);
   cursor: pointer;
-  aspect-ratio: 3/4;    /* portrait */
+  aspect-ratio: 4/3;    /* landscape — matches iNat 4:3 photos */
   transition: transform .22s, box-shadow .22s, border-color .22s;
 }
 .card:hover {
@@ -282,7 +282,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
   overflow: hidden;
 }
 .card:hover .cimg { transform: scale(1.06); }
-.cimg { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; transition: transform .5s ease; }
+.cimg { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; transition: transform .5s ease; }
 .cph {
   width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
@@ -566,7 +566,7 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
 .wikilink:hover { text-decoration: underline; }
 
 /* Map */
-#spMap { height: 360px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+#spMap { height: 380px; border-radius: 10px; border: 1px solid var(--border); }
 .mapnote { font-size: .68rem; color: var(--muted); margin-top: 7px; text-align: right; }
 .mapnote a { color: var(--accent); }
 /* Leaflet popup — dark theme */
@@ -697,8 +697,7 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
   .sinput-full { width: 100% !important; }
   .frow-search { padding: 7px 12px; }
   .fbar { top: 48px; }
-  /* cards: 2 columns on mobile */
-  .card { aspect-ratio: 2/3; }
+  .card { aspect-ratio: 4/3; }
   /* hero: safe area at bottom for mobile browser chrome */
   .hero-content { padding: 0 20px calc(70px + env(safe-area-inset-bottom)); }
   /* footer stacks on mobile */
@@ -927,7 +926,7 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
       <div class="tc on" id="t-desc">
         <div class="aloading" id="descEl">Cargando…</div>
         <div class="cooc-section" id="coocSection" style="display:none">
-          <div class="cooc-title">Suele observarse junto a <span style="font-weight:400;font-size:.6rem;color:var(--muted);text-transform:none;letter-spacing:0">· basado en obs. de Golfo Nuevo</span></div>
+          <div class="cooc-title">Suele observarse junto a</div>
           <div class="cooc-chips" id="coocChips"></div>
         </div>
       </div>
@@ -945,6 +944,10 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
 </div><!-- /soverlay -->
 
 <script>
+/* Keep page at hero on load — disable browser scroll restoration */
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+window.scrollTo(0, 0);
+
 /* ────────────────────────────────────────────────
    CONFIG
 ──────────────────────────────────────────────── */
@@ -1342,13 +1345,7 @@ function cardHTML(t, i) {
   const sn = sci(t);
   const cn = cnames[t.taxon_id]||'';
   const mg = mainG(t);
-  const sb = subG(t);
-  const zs = zonas(t);
   const icon = mg==='Peces'?'🐟':mg==='Algas'?'🌿':'🦀';
-  const col  = scol(sb);
-  /* group label: "PECES" or "INVERTEBRADOS · CEFALÓPODOS" */
-  const glabel = sb ? `${mg} · ${sb}` : mg;
-  const gcol   = scol(mg);
   const num = String(i+1).padStart(2,'0');
   return `
   <div class="card" data-id="${t.id}">
@@ -1357,8 +1354,6 @@ function cardHTML(t, i) {
     </div>
     <span class="cnum">${num}</span>
     <div class="coverlay">
-      ${glabel?`<div class="cgroup" style="color:${gcol}">${glabel}</div>`:''}
-      ${zs.length?`<div class="ctags">${zs.map(z=>`<span class="ctag">${z}</span>`).join('')}</div>`:''}
       <div class="csci">${sn}</div>
       ${cn?`<div class="ccommon">${cn}</div>`:''}
     </div>
@@ -1760,12 +1755,12 @@ async function initMap(taxonId) {
           <div style="font-size:.75rem;color:#aaa;margin-bottom:2px">${date}${place?' · '+place:''}</div>
           ${user ? `<div style="font-size:.73rem;color:#ccc;margin-bottom:6px">@${user}</div>` : ''}
           <a href="${obsUrl}" target="_blank"
-             style="display:block;text-align:center;background:#00b4d8;color:#fff;border-radius:6px;padding:5px 10px;font-size:.75rem;font-weight:700;text-decoration:none">
+             style="display:block;text-align:center;background:#00b4d8;color:#fff;border-radius:6px;padding:9px 10px;font-size:.8rem;font-weight:700;text-decoration:none;margin-top:4px">
             Ver en iNaturalist ↗
           </a>
         </div>`;
 
-      marker.bindPopup(popupHtml, {maxWidth:200, className:'inat-popup'});
+      marker.bindPopup(popupHtml, {maxWidth:220, className:'inat-popup', keepInView:true, autoPan:true});
       marker.addTo(leafMap);
     });
 
