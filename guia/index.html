@@ -716,7 +716,6 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
   <div class="sitenav-links">
     <a href="/guia/" class="active">Guía</a>
     <a href="/rodolitos/">Rodolitos</a>
-    <a href="#aboutOverlay" id="aboutBtn">Acerca</a>
   </div>
 </nav>
 
@@ -808,23 +807,26 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
   <div class="footer-stats">
     <div class="fstat">
       <span class="fstat-num" id="ftSpecies">—</span>
-      <span class="fstat-label">Especies registradas</span>
+      <span class="fstat-label">Especies</span>
     </div>
     <div class="fstat">
-      <span class="fstat-num" id="ftObs">—</span>
-      <span class="fstat-label">Observaciones en iNat</span>
+      <span class="fstat-num" id="ftAlgas">—</span>
+      <span class="fstat-label">Algas</span>
     </div>
     <div class="fstat">
-      <span class="fstat-num" id="ftGroups">—</span>
-      <span class="fstat-label">Grupos taxonómicos</span>
+      <span class="fstat-num" id="ftPeces">—</span>
+      <span class="fstat-label">Peces</span>
     </div>
     <div class="fstat">
-      <span class="fstat-num">3</span>
-      <span class="fstat-label">Zonas de hábitat</span>
+      <span class="fstat-num" id="ftInverts">—</span>
+      <span class="fstat-label">Invertebrados</span>
     </div>
   </div>
-  <div class="footer-sdg">
-    <img class="sdg14-img" src="/assets/sdg14.png" alt="ODS 14 — Vida Submarina">
+  <div style="display:flex;align-items:center;gap:16px">
+    <button id="aboutBtn" style="background:transparent;border:1px solid var(--border);color:var(--text2);font-family:var(--co-font-display);font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:7px 16px;border-radius:6px;cursor:pointer;transition:border-color .15s,color .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">Acerca</button>
+    <div class="footer-sdg">
+      <img class="sdg14-img" src="/assets/sdg14.png" alt="ODS 14 — Vida Submarina">
+    </div>
   </div>
 </footer>
 
@@ -834,30 +836,24 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
     <!-- header -->
     <div style="padding:22px 28px 0;display:flex;align-items:flex-start;justify-content:space-between">
       <div>
-        <p style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px">Guía de Especies Submarinas · Mar Argentino</p>
-        <h2 style="font-size:1.3rem;font-weight:800;color:#eef9ff">Sobre esta guía</h2>
+        <p style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px">culturaoceanica.org</p>
+        <h2 style="font-size:1.3rem;font-weight:800;color:#eef9ff">Sobre Cultura Oceánica</h2>
       </div>
       <button id="aboutClose" style="background:var(--s2);border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:50%;font-size:.9rem;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-left:16px">✕</button>
     </div>
     <!-- body -->
     <div style="padding:20px 28px 32px;font-size:.87rem;color:var(--text2);line-height:1.8">
 
-      <h3 style="color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;margin:20px 0 8px">¿Cómo funciona?</h3>
-      <p>Esta guía reúne las especies de fondos marinos de la costa argentina documentadas mediante buceo científico. Cada ficha integra las siguientes fuentes:</p>
+      <p>Cultura Oceánica es una plataforma de ciencia y educación marina desarrollada en Argentina. Reúne herramientas interactivas para explorar, comunicar y proteger la biodiversidad de los fondos marinos del Mar Argentino, combinando investigación científica, datos abiertos y diseño accesible.</p>
+
+      <h3 style="color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;margin:24px 0 8px">Herramientas</h3>
       <ul style="padding-left:18px;margin:10px 0">
-        <li style="margin-bottom:6px"><a href="https://www.argentinat.org/" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none">iNaturalist ↗</a> — fotografías y registros de observación georreferenciados, con mapa de distribución de observaciones verificadas.</li>
-        <li style="margin-bottom:6px"><a href="https://es.wikipedia.org/" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none">Wikipedia ↗</a> — resumen taxonómico y ecológico de cada especie.</li>
-        <li style="margin-bottom:6px"><a href="https://www.marinespecies.org/" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none">WoRMS ↗</a> (World Register of Marine Species) — clasificación taxonómica y sinonimias para <strong style="color:var(--text)">invertebrados</strong>.</li>
-        <li style="margin-bottom:6px"><a href="https://www.fishbase.se/" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none">FishBase ↗</a> — base de datos taxonómica y ecológica para <strong style="color:var(--text)">peces</strong>.</li>
-        <li style="margin-bottom:6px"><a href="https://www.algaebase.org/" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none">AlgaeBase ↗</a> — base de datos taxonómica para <strong style="color:var(--text)">algas</strong>.</li>
+        <li style="margin-bottom:6px"><strong style="color:var(--text)">Guía de Especies Submarinas</strong> — fichas interactivas de algas, peces e invertebrados documentados mediante buceo científico, con datos en tiempo real desde iNaturalist, Wikipedia, WoRMS, FishBase y AlgaeBase.</li>
+        <li style="margin-bottom:6px"><strong style="color:var(--text)">Visor de Rodolitos</strong> — explorador de comunidades de rodolitos (algas calcáreas coralinas) con análisis de fotocuadrantes y monitoreo de largo plazo.</li>
       </ul>
-      <p>Los datos se cargan directamente desde cada plataforma, por lo que cualquier actualización en iNaturalist se refleja automáticamente en esta guía.</p>
 
       <h3 style="color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;margin:24px 0 8px">Contexto</h3>
-      <p>Esta guía fue elaborada en el marco de la tesis doctoral de <strong style="color:var(--text)">Gonzalo Bravo</strong> sobre comunidades de fondos rocosos submareales de la Patagonia argentina, con el apoyo de diversas instituciones y colaboradores de campo.</p>
-
-      <h3 style="color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;margin:24px 0 8px">Colaboradores</h3>
-      <p style="color:var(--muted);font-style:italic">[ Completar con nombres de colaboradores ]</p>
+      <p>Desarrollada en el marco de la tesis doctoral de <strong style="color:var(--text)">Gonzalo Bravo</strong> (IBIOMAR–CONICET / UNPSJB) sobre comunidades submareales de la Patagonia argentina, con el apoyo de instituciones y colaboradores de campo.</p>
 
       <h3 style="color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;margin:24px 0 8px">Instituciones</h3>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
@@ -1158,25 +1154,14 @@ async function fetchDescs() {
 }
 
 async function fetchFooterStats() {
-  /* Stats locales */
   const ftSp = document.getElementById('ftSpecies');
-  const ftOb = document.getElementById('ftObs');
-  const ftGr = document.getElementById('ftGroups');
+  const ftAl = document.getElementById('ftAlgas');
+  const ftPe = document.getElementById('ftPeces');
+  const ftIn = document.getElementById('ftInverts');
   if (ftSp) ftSp.textContent = taxa.length;
-  if (ftGr) {
-    const groups = new Set(taxa.map(mainG).filter(Boolean));
-    ftGr.textContent = groups.size;
-  }
-  /* Observaciones en iNat (sólo count) */
-  if (ftOb) {
-    try {
-      const ids = taxa.map(t=>t.taxon_id).join(',');
-      const r = await fetch(`${V1_API}/observations?taxon_id=${ids}&place_id=97389&quality_grade=research&per_page=0`);
-      const d = await r.json();
-      const total = d.total_results || 0;
-      ftOb.textContent = total >= 1000 ? (total/1000).toFixed(1)+'K+' : total;
-    } catch { ftOb.textContent = '—'; }
-  }
+  if (ftAl) ftAl.textContent = taxa.filter(t => mainG(t) === 'Algas').length;
+  if (ftPe) ftPe.textContent = taxa.filter(t => mainG(t) === 'Peces').length;
+  if (ftIn) ftIn.textContent = taxa.filter(t => mainG(t) === 'Invertebrados').length;
 }
 
 async function fetchCnames() {
