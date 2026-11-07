@@ -298,14 +298,15 @@ button { font-family: inherit; cursor: pointer; border: none; }
   border-top: 1px solid rgba(255,255,255,.04);
   flex: 1;
 }
-/* Group badge — bottom-right of card */
+/* Group badge — in caption strip, below names */
 .cgroup-badge {
-  position: absolute; bottom: 8px; right: 9px; z-index: 4;
+  display: inline-block;
+  margin-top: 6px;
   font-family: var(--co-font-display);
-  font-size: .56rem; font-weight: 700; letter-spacing: 1.5px;
+  font-size: .54rem; font-weight: 700; letter-spacing: 1.5px;
   text-transform: uppercase;
   padding: 2px 7px; border-radius: 3px;
-  color: #fff; opacity: .92;
+  opacity: .92;
 }
 .ctags { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 8px; }
 .ctag {
@@ -1363,12 +1364,12 @@ function cardHTML(t, i) {
   <div class="card" data-id="${t.id}">
     <div class="card-img">
       ${ph?`<img class="cimg" src="${ph.medium_url}" alt="${sn}" loading="lazy">`:`<div class="cph">${icon}</div>`}
-      ${badge}
     </div>
     <span class="cnum">${num}</span>
     <div class="coverlay">
       <div class="csci">${sn}</div>
       ${cn?`<div class="ccommon">${cn}</div>`:''}
+      ${badge}
     </div>
   </div>`;
 }
