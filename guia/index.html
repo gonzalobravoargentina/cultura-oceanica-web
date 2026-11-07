@@ -1363,9 +1363,9 @@ function cardHTML(t, i) {
   <div class="card" data-id="${t.id}">
     <div class="card-img">
       ${ph?`<img class="cimg" src="${ph.medium_url}" alt="${sn}" loading="lazy">`:`<div class="cph">${icon}</div>`}
+      ${badge}
     </div>
     <span class="cnum">${num}</span>
-    ${badge}
     <div class="coverlay">
       <div class="csci">${sn}</div>
       ${cn?`<div class="ccommon">${cn}</div>`:''}
