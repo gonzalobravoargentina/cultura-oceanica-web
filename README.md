@@ -1,43 +1,40 @@
-# Cultura Oceánica · Herramientas web
+# Cultura Oceánica
 
-Repositorio del sitio **culturaoceanica.org**, publicado con GitHub Pages. Cada funcionalidad ocupa una carpeta independiente y conserva su código, sus datos y sus recursos dentro de ella.
+Repositorio del sitio **[culturaoceanica.org](https://culturaoceanica.org)**, publicado con GitHub Pages. Plataforma de ciencia y educación marina del Mar Argentino.
 
-| Funcionalidad | Carpeta | Dirección pública |
-| --- | --- | --- |
-| Guía de especies | `guia/` | https://culturaoceanica.org/guia/ |
-| Explorador de rodolitos | `rodolitos/` | https://culturaoceanica.org/rodolitos/ |
+## Estructura
 
-## Trabajar de forma independiente
+```
+/
+├── guia/          → Guía de Especies Submarinas (culturaoceanica.org/guia/)
+├── rodolitos/     → Visor de Rodolitos          (culturaoceanica.org/rodolitos/)
+├── assets/        → Recursos compartidos (tokens de diseño, íconos)
+└── CNAME          → Configuración de dominio
+```
 
-- Para modificar la guía, trabajar dentro de `guia/`.
-- Para modificar el visor, trabajar dentro de `rodolitos/`.
-- Cada herramienta conserva sus propios recursos. No introducir dependencias entre las carpetas para cambios particulares de una herramienta.
-- Usar rutas relativas dentro de cada carpeta, para que la herramienta funcione bajo su propia dirección.
-- Cada tarea puede trabajarse en una rama independiente y revisarse por separado antes de incorporarla a `main`.
-- Las bibliotecas o procesos de construcción futuros pueden tener su propia configuración dentro de la carpeta de la herramienta que los necesite.
+Cada herramienta es autónoma: tiene su propio `index.html` y recursos. No hay dependencias entre carpetas.
 
-## Qué es compartido
+## Herramientas
 
-GitHub Pages publica la raíz de la rama `main`. La incorporación de un cambio a esa rama vuelve a publicar el sitio completo, aunque solamente cambien los archivos de una herramienta.
+**Guía de Especies Submarinas** — fichas interactivas de algas, peces e invertebrados documentados en fondos del Mar Argentino mediante buceo científico. Datos en tiempo real desde iNaturalist, Wikipedia, WoRMS, FishBase y AlgaeBase. Incluye mapa de observaciones georreferenciadas (Leaflet + iNat API).
 
-El archivo `CNAME` configura el dominio del sitio completo. Una nueva herramienta se agrega como carpeta; no necesita otro dominio ni cambios en `CNAME`. Cualquier configuración general de publicación debe revisarse considerando todas las herramientas.
+**Visor de Rodolitos** — explorador de comunidades de rodolitos con análisis de fotocuadrantes y monitoreo de largo plazo basado en protocolos MBON.
 
-Antes de publicar, comprobar la funcionalidad modificada. Después de publicar, comprobar su dirección pública y que las demás herramientas sigan abriendo correctamente.
+## Características técnicas
 
-## Agregar otra herramienta
-
-Crear una carpeta con un nombre breve, por ejemplo `nueva-herramienta/`, que contenga su propio `index.html` y recursos. Su dirección será `https://culturaoceanica.org/nueva-herramienta/`. Registrar la nueva herramienta en la tabla anterior.
+- Sitio estático (HTML + CSS + JS vanilla), sin framework ni build step
+- Deploy automático vía GitHub Pages desde `main`
+- Datos cargados en tiempo real desde APIs públicas (iNaturalist v1, Wikipedia, WoRMS)
+- Diseño responsivo con sistema de tokens CSS compartido (`assets/co-theme.css`)
 
 ## Desarrollo local
 
-Desde la raíz del repositorio, se puede usar un servidor de archivos estáticos:
-
 ```sh
 python3 -m http.server 8000
+# → http://localhost:8000/guia/
+# → http://localhost:8000/rodolitos/
 ```
-
-Abrir `http://localhost:8000/guia/` o `http://localhost:8000/rodolitos/`.
 
 ## Créditos
 
-Los créditos y las licencias de cada herramienta deben conservarse dentro de su carpeta o en su documentación específica. Ver [RODOLITOS.md](RODOLITOS.md) para el visor de rodolitos.
+Desarrollado por **Gonzalo Bravo** (IBIOMAR–CONICET / UNPSJB) en el marco de investigación sobre comunidades submareales de la Patagonia argentina. Contenido bajo [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.es).
