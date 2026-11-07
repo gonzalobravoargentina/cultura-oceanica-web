@@ -298,12 +298,14 @@ button { font-family: inherit; cursor: pointer; border: none; }
   border-top: 1px solid rgba(255,255,255,.04);
   flex: 1;
 }
-/* Eyebrow label: group */
-.cgroup {
+/* Group badge — bottom-right of card */
+.cgroup-badge {
+  position: absolute; bottom: 8px; right: 9px; z-index: 4;
   font-family: var(--co-font-display);
-  font-size: .58rem; font-weight: 700; letter-spacing: 2.5px;
-  text-transform: uppercase; opacity: .8;
-  margin-bottom: 6px;
+  font-size: .56rem; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 2px 7px; border-radius: 3px;
+  color: #fff; opacity: .92;
 }
 .ctags { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 8px; }
 .ctag {
@@ -923,10 +925,6 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
     <div class="tabarea">
       <div class="tc on" id="t-desc">
         <div class="aloading" id="descEl">Cargando…</div>
-        <div class="cooc-section" id="coocSection" style="display:none">
-          <div class="cooc-title">Suele observarse junto a</div>
-          <div class="cooc-chips" id="coocChips"></div>
-        </div>
       </div>
       <div class="tc"    id="t-wiki"><p class="aloading" id="wikiEl">Cargando…</p></div>
       <div class="tc"    id="t-map">
@@ -1346,6 +1344,12 @@ function renderGrid() {
 /* ────────────────────────────────────────────────
    CARD HTML
 ──────────────────────────────────────────────── */
+const GROUP_COLORS = {
+  'Algas':         '#56c96e',
+  'Peces':         '#4ca3e8',
+  'Invertebrados': '#f0964a',
+  'Ascidias':      '#a050c0',
+};
 function cardHTML(t, i) {
   const ph = (t.guide_photos||[])[0];
   const sn = sci(t);
@@ -1353,12 +1357,15 @@ function cardHTML(t, i) {
   const mg = mainG(t);
   const icon = mg==='Peces'?'🐟':mg==='Algas'?'🌿':'🦀';
   const num = String(i+1).padStart(2,'0');
+  const gc = GROUP_COLORS[mg] || '#8899aa';
+  const badge = mg ? `<span class="cgroup-badge" style="background:${gc}22;border:1px solid ${gc}66;color:${gc}">${mg}</span>` : '';
   return `
   <div class="card" data-id="${t.id}">
     <div class="card-img">
       ${ph?`<img class="cimg" src="${ph.medium_url}" alt="${sn}" loading="lazy">`:`<div class="cph">${icon}</div>`}
     </div>
     <span class="cnum">${num}</span>
+    ${badge}
     <div class="coverlay">
       <div class="csci">${sn}</div>
       ${cn?`<div class="ccommon">${cn}</div>`:''}
