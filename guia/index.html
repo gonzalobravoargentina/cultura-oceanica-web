@@ -2125,20 +2125,6 @@ async function buildRichnessMap() {
     maxZoom: 13
   }).addTo(rmap);
 
-  // ── Point-in-polygon (ray casting) ─────────────────────────
-  function pip(lat, lng, coords) {
-    let inside = false;
-    for (let i = 0, j = coords.length - 1; i < coords.length; j = i++) {
-      const yi = coords[i][0], xi = coords[i][1];
-      const yj = coords[j][0], xj = coords[j][1];
-      if (((yi > lat) !== (yj > lat)) &&
-          (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi)) {
-        inside = !inside;
-      }
-    }
-    return inside;
-  }
-
   // ── Zone data ───────────────────────────────────────────────
   const zoneData = {};
   ZONES.forEach(z => {
@@ -2152,59 +2138,68 @@ async function buildRichnessMap() {
 
   // Guide taxon_id → taxon object
   const guideTaxonMap = new Map(taxa.map(t => [t.taxon_id, t]));
+  const guideIds = taxa.map(t => t.taxon_id).filter(Boolean);
+  // Chunk IDs for URL safety (~100 per call)
+  const ID_CHUNKS = [];
+  for (let i = 0; i < guideIds.length; i += 100) ID_CHUNKS.push(guideIds.slice(i, i + 100).join(','));
 
-  // ── Fetch ALL observations (no quality filter) ─────────────
-  const ids   = taxa.map(t => t.taxon_id).filter(Boolean);
-  const BATCH = 20;
+  // Polygon bounding box helper
+  function zoneBBox(coords) {
+    const lats = coords.map(c => c[0]), lngs = coords.map(c => c[1]);
+    return { swlat: Math.min(...lats), nelat: Math.max(...lats),
+             swlng: Math.min(...lngs), nelng: Math.max(...lngs) };
+  }
+
+  // ── Per-zone exact fetch ────────────────────────────────────
+  // Uses /observations/species_counts for exact species richness (no obs-page limit)
+  // Uses /observations?per_page=0 for exact total obs count (just reads total_results)
   let totalObs = 0;
 
-  for (let i = 0; i < ids.length; i += BATCH) {
-    const chunk = ids.slice(i, i + BATCH).join(',');
-    try {
-      const r = await fetch(
-        `${V1_API}/observations?taxon_id=${chunk}` +
-        `&swlat=-56&swlng=-74&nelat=-21&nelng=-52` +
-        `&per_page=200&geo=true`
-      );
-      const d = await r.json();
-      (d.results || []).forEach(obs => {
-        if (!obs.location) return;
-        const [lat, lng] = obs.location.split(',').map(Number);
-        if (isNaN(lat) || isNaN(lng)) return;
-        const tid = obs.taxon?.id;
-        if (!tid) return;
-        // Match to guide taxon (direct or via ancestors)
-        let gt = guideTaxonMap.get(tid);
-        if (!gt) {
-          for (const aid of (obs.taxon?.ancestor_ids || [])) {
-            if (guideTaxonMap.has(aid)) { gt = guideTaxonMap.get(aid); break; }
-          }
-        }
-        if (!gt) return;
-        const group  = mainG(gt);
-        const algSub = (group === 'Algas') ? subG(gt) : null;
-        const invSub = (group === 'Invertebrados') ? subG(gt) : null;
+  for (const zone of ZONES) {
+    const { swlat, nelat, swlng, nelng } = zoneBBox(zone.coords);
+    const bbox = `swlat=${swlat.toFixed(4)}&nelat=${nelat.toFixed(4)}&swlng=${swlng.toFixed(4)}&nelng=${nelng.toFixed(4)}`;
+    const zd   = zoneData[zone.id];
 
-        for (const zone of ZONES) {
-          if (pip(lat, lng, zone.coords)) {
-            const zd = zoneData[zone.id];
-            zd.all.add(tid);
-            if (group) zd[group] && zd[group].add(tid);
-            // Alga subtypes
-            if (algSub && ALG_SPECIFIC.has(algSub)) zd[algSub].add(tid);
-            // Inv subgroups (top-level: moluscos, equinodermos, crustáceos, etc.)
-            if (invSub) {
-              if (!zd.inv_groups[invSub]) zd.inv_groups[invSub] = new Set();
-              zd.inv_groups[invSub].add(tid);
+    // 1. Total obs in zone (all taxa — shows sampling effort)
+    try {
+      const r = await fetch(`${V1_API}/observations?${bbox}&per_page=0&geo=true`);
+      const d = await r.json();
+      zd.obs_all = d.total_results || 0;
+      totalObs  += zd.obs_all;
+    } catch {}
+
+    // 2. Guide species in zone — query per chunk of IDs
+    for (const chunk of ID_CHUNKS) {
+      try {
+        const r = await fetch(
+          `${V1_API}/observations/species_counts?${bbox}&taxon_id=${chunk}&per_page=200&geo=true`
+        );
+        const d = await r.json();
+        for (const item of (d.results || [])) {
+          const tid = item.taxon?.id;
+          if (!tid) continue;
+          let gt = guideTaxonMap.get(tid);
+          // Try matching via ancestry chain if direct match fails
+          if (!gt) {
+            for (const aid of (item.taxon?.ancestor_ids || [])) {
+              if (guideTaxonMap.has(aid)) { gt = guideTaxonMap.get(aid); break; }
             }
-            zd.obs_all++;
-            break;
+          }
+          if (!gt) continue;
+          const group  = mainG(gt);
+          const algSub = (group === 'Algas')         ? subG(gt) : null;
+          const invSub = (group === 'Invertebrados') ? subG(gt) : null;
+          zd.all.add(tid);
+          if (group && zd[group]) zd[group].add(tid);
+          if (algSub && ALG_SPECIFIC.has(algSub)) zd[algSub].add(tid);
+          if (invSub) {
+            if (!zd.inv_groups[invSub]) zd.inv_groups[invSub] = new Set();
+            zd.inv_groups[invSub].add(tid);
           }
         }
-        totalObs++;
-      });
-    } catch {}
-    await new Promise(res => setTimeout(res, 180));
+      } catch {}
+      await new Promise(res => setTimeout(res, 100));
+    }
   }
 
   if (loadEl) loadEl.style.display = 'none';
@@ -2241,12 +2236,8 @@ async function buildRichnessMap() {
     h += `<div style="font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:#00c9d4;margin-bottom:7px">${zone.name}</div>`;
 
     if (layer === 'obs') {
-      h += `<div style="font-size:1.05rem;font-weight:900;color:#fff;margin-bottom:8px">${d.obs_all.toLocaleString()} observaciones</div>`;
-      h += `<div style="font-size:.72rem;color:#8899aa;line-height:1.9">`;
-      h += `🌿 Algas <b style="color:#3dd68c;float:right;margin-left:16px">${d.Algas.size}</b><br>`;
-      h += `🐟 Peces <b style="color:#74b9ff;float:right;margin-left:16px">${d.Peces.size}</b><br>`;
-      h += `🐚 Invertebrados <b style="color:#fab1a0;float:right;margin-left:16px">${d.Invertebrados.size}</b>`;
-      h += `</div>`;
+      h += `<div style="font-size:1.3rem;font-weight:900;color:#fff">${d.obs_all.toLocaleString()}</div>`;
+      h += `<div style="font-size:.7rem;color:#8899aa;margin-top:2px">observaciones totales en iNat</div>`;
     } else if (layer === 'Algas') {
       h += `<div style="font-size:1.05rem;font-weight:900;color:#fff;margin-bottom:8px">${d.Algas.size} algas en la guía</div>`;
       h += `<div style="font-size:.72rem;color:#8899aa;line-height:1.9">`;
