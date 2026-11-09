@@ -298,15 +298,12 @@ button { font-family: inherit; cursor: pointer; border: none; }
   border-top: 1px solid rgba(255,255,255,.04);
   flex: 1;
 }
-/* Group badge — in caption strip, below names */
-.cgroup-badge {
-  display: inline-block;
-  margin-top: 6px;
+/* Eyebrow label: group */
+.cgroup {
   font-family: var(--co-font-display);
-  font-size: .54rem; font-weight: 700; letter-spacing: 1.5px;
-  text-transform: uppercase;
-  padding: 2px 7px; border-radius: 3px;
-  opacity: .92;
+  font-size: .58rem; font-weight: 700; letter-spacing: 2.5px;
+  text-transform: uppercase; opacity: .8;
+  margin-bottom: 6px;
 }
 .ctags { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 8px; }
 .ctag {
@@ -488,8 +485,6 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .eb-wiki:hover  { border-color: var(--accent); color: var(--accent); }
 .eb-worms { background: transparent; border-color: var(--border); color: var(--text2); }
 .eb-worms:hover { border-color: #26a69a; color: #26a69a; }
-.eb-nudi  { background: transparent; border-color: #9b59b640; color: #c084dc; }
-.eb-nudi:hover { border-color: #9b59b6; color: #d8a0f0; }
 
 hr.spdiv { border: none; border-top: 1px solid var(--border); }
 
@@ -562,14 +557,10 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
 }
 .nofiche small { font-style: normal; font-size: .75rem; color: var(--muted2); }
 
-/* Taxonomy tab */
-.taxo-table { border-collapse: collapse; width: 100%; margin-bottom: 16px; }
-.taxo-table td { padding: 7px 10px; font-size: .82rem; border-bottom: 1px solid rgba(255,255,255,.05); }
-.taxo-rank { width: 90px; color: var(--muted2); font-family: var(--co-font-display); letter-spacing: .5px; text-transform: uppercase; font-size: .68rem; }
-.taxo-name { color: var(--text2); font-style: italic; }
-.taxo-sp .taxo-name, .taxo-name.taxo-sp { color: var(--accent); font-weight: 600; }
-.taxo-row-sp td { border-bottom: none; }
-.wikilink { display: inline-block; margin-top: 4px; font-size: .8rem; color: var(--accent); }
+/* Wikipedia */
+.wikitext { font-size: .87rem; color: var(--text2); line-height: 1.88; overflow: hidden; }
+.wikitext img { float: right; width: 110px; height: 110px; object-fit: cover; border-radius: 8px; margin: 0 0 12px 16px; flex-shrink: 0; }
+.wikilink { display: inline-block; margin-top: 12px; font-size: .8rem; color: var(--accent); }
 .wikilink:hover { text-decoration: underline; }
 
 /* Map */
@@ -617,74 +608,6 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
 
 /* Async loading text */
 .aloading { font-size: .82rem; color: var(--muted); font-style: italic; }
-
-/* ================================================
-   RICHNESS MAP SECTION
-================================================ */
-.richness-section {
-  width: 100%;
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-}
-.richness-heading {
-  display: flex; align-items: baseline; justify-content: space-between;
-  padding: 22px 20px 14px; max-width: 1600px; margin: 0 auto;
-}
-.richness-title {
-  font-family: var(--co-font-display);
-  font-size: 1.5rem; font-weight: 900; letter-spacing: 2px;
-  text-transform: uppercase; color: var(--text);
-}
-.richness-meta {
-  font-family: var(--co-font-display);
-  font-size: .68rem; letter-spacing: 2px; text-transform: uppercase;
-  color: var(--muted);
-}
-.richness-map-wrap {
-  position: relative;
-  width: 100%;
-  height: 420px;
-}
-#richnessMap {
-  width: 100%; height: 100%;
-}
-/* OSM tiles dark filter — inverts light map to dark style */
-.rmap-osm-tile {
-  filter: invert(100%) hue-rotate(180deg) brightness(78%) contrast(88%) saturate(60%);
-}
-.richness-legend {
-  position: absolute;
-  bottom: 20px; left: 20px;
-  z-index: 1000;
-  background: rgba(4, 10, 22, 0.82);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 10px 14px;
-  backdrop-filter: blur(6px);
-}
-.richness-legend-title {
-  font-family: var(--co-font-display);
-  font-size: .58rem; font-weight: 700; letter-spacing: 2px;
-  text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
-}
-.richness-legend-scale {
-  display: flex; align-items: center; gap: 2px;
-}
-.richness-legend-bar {
-  height: 8px; border-radius: 2px;
-}
-.richness-legend-labels {
-  display: flex; justify-content: space-between;
-  font-family: var(--co-font-display); font-size: .6rem;
-  letter-spacing: 1px; color: var(--muted); margin-top: 4px;
-}
-.richness-loading {
-  position: absolute; inset: 0; display: flex;
-  align-items: center; justify-content: center;
-  font-family: var(--co-font-display); font-size: .72rem;
-  letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
-  pointer-events: none;
-}
 
 /* ================================================
    FOOTER
@@ -790,6 +713,7 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
   <div class="sitenav-links">
     <a href="/guia/" class="active">Guía</a>
     <a href="/rodolitos/">Rodolitos</a>
+    <a href="#aboutOverlay" id="aboutBtn">Acerca</a>
   </div>
 </nav>
 
@@ -802,16 +726,11 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
   <div class="hero-content">
     <p class="hero-eyebrow">Costa Patagónica · Mar Argentino</p>
     <h1 class="hero-title">Guía de <em>Especies</em> Submarinas</h1>
-    <p class="hero-sub">Algas, invertebrados y peces documentados en los fondos del Mar Argentino mediante buceo científico.</p>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:28px">
-      <button class="hero-cta" style="margin-top:0" onclick="document.querySelector('.fbar').scrollIntoView({behavior:'smooth'})">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        Explorar especies
-      </button>
-      <button id="aboutBtn" class="hero-cta" style="margin-top:0;background:transparent;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.75)">
-        Acerca
-      </button>
-    </div>
+    <p class="hero-sub">Algas, invertebrados y peces documentados en los fondos rocosos del Mar Argentino mediante buceo científico.</p>
+    <button class="hero-cta" onclick="document.querySelector('.fbar').scrollIntoView({behavior:'smooth'})">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Explorar especies
+    </button>
   </div>
   <div class="hero-scroll">scroll</div>
   <span class="hero-credit">📷 G. Bravo · CC BY-SA · Wikipedia</span>
@@ -868,11 +787,6 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
     <span class="flbl" style="opacity:.4">↳↳</span>
     <div class="chips" id="subChips2"></div>
   </div>
-  <!-- Row 6: Sub-sub-subgrupos (ej: nudibranquios dentro de gasterópodos) -->
-  <div class="sub-sep" id="subSep3">
-    <span class="flbl" style="opacity:.25">↳↳↳</span>
-    <div class="chips" id="subChips3"></div>
-  </div>
 </div>
 
 <!-- ════════════════════ SECTION HEADING ════════════════════ -->
@@ -886,43 +800,24 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
   <div class="cmsg"><div class="spin"></div>Cargando especies desde iNaturalist…</div>
 </div>
 
-<!-- ════════════════════ RICHNESS MAP ════════════════════ -->
-<section class="richness-section">
-  <div class="richness-heading">
-    <span class="richness-title">Distribución costera</span>
-    <span class="richness-meta" id="richnessMetaLabel">Cargando observaciones…</span>
-  </div>
-  <div class="richness-map-wrap">
-    <div id="richnessMap"></div>
-    <div class="richness-loading" id="richnessLoading">Cargando observaciones…</div>
-    <div class="richness-legend" id="richnessLegend" style="display:none">
-      <div class="richness-legend-title">Riqueza de especies</div>
-      <div class="richness-legend-scale" id="richnessScale"></div>
-      <div class="richness-legend-labels">
-        <span>1</span><span id="richnessMax">—</span>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ════════════════════ FOOTER ════════════════════ -->
 <footer class="site-footer">
   <div class="footer-stats">
     <div class="fstat">
       <span class="fstat-num" id="ftSpecies">—</span>
-      <span class="fstat-label">Especies</span>
+      <span class="fstat-label">Especies registradas</span>
     </div>
     <div class="fstat">
-      <span class="fstat-num" id="ftAlgas">—</span>
-      <span class="fstat-label">Algas</span>
+      <span class="fstat-num" id="ftObs">—</span>
+      <span class="fstat-label">Observaciones en iNat</span>
     </div>
     <div class="fstat">
-      <span class="fstat-num" id="ftPeces">—</span>
-      <span class="fstat-label">Peces</span>
+      <span class="fstat-num" id="ftGroups">—</span>
+      <span class="fstat-label">Grupos taxonómicos</span>
     </div>
     <div class="fstat">
-      <span class="fstat-num" id="ftInverts">—</span>
-      <span class="fstat-label">Invertebrados</span>
+      <span class="fstat-num">3</span>
+      <span class="fstat-label">Zonas de hábitat</span>
     </div>
   </div>
   <div class="footer-sdg">
@@ -936,26 +831,30 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
     <!-- header -->
     <div style="padding:22px 28px 0;display:flex;align-items:flex-start;justify-content:space-between">
       <div>
-        <p style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px">culturaoceanica.org</p>
-        <h2 style="font-size:1.3rem;font-weight:800;color:#eef9ff">Guía de Especies Submarinas</h2>
+        <p style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px">Guía de Especies Submarinas · Mar Argentino</p>
+        <h2 style="font-size:1.3rem;font-weight:800;color:#eef9ff">Sobre esta guía</h2>
       </div>
       <button id="aboutClose" style="background:var(--s2);border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:50%;font-size:.9rem;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-left:16px">✕</button>
     </div>
     <!-- body -->
     <div style="padding:20px 28px 32px;font-size:.87rem;color:var(--text2);line-height:1.8">
 
-      <p>Fichas interactivas de algas, peces e invertebrados documentados en fondos rocosos del Mar Argentino mediante buceo científico. Cada ficha incluye fotos de campo, descripción, distribución y datos en tiempo real desde bases de datos abiertas.</p>
-
-      <h3 style="color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;margin:24px 0 8px">Fuentes de datos</h3>
+      <h3 style="color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;margin:20px 0 8px">¿Cómo funciona?</h3>
+      <p>Esta guía reúne las especies de fondos marinos de la costa argentina documentadas mediante buceo científico. Cada ficha integra las siguientes fuentes:</p>
       <ul style="padding-left:18px;margin:10px 0">
-        <li style="margin-bottom:6px"><strong style="color:var(--text)">iNaturalist</strong> — fotografías, observaciones georreferenciadas y nombres.</li>
-        <li style="margin-bottom:6px"><strong style="color:var(--text)">Wikipedia</strong> — descripciones ecológicas en español.</li>
-        <li style="margin-bottom:6px"><strong style="color:var(--text)">WoRMS</strong> — clasificación taxonómica actualizada.</li>
-        <li style="margin-bottom:6px"><strong style="color:var(--text)">FishBase / AlgaeBase</strong> — datos específicos de peces y algas.</li>
+        <li style="margin-bottom:6px"><a href="https://www.argentinat.org/" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none">iNaturalist ↗</a> — fotografías y registros de observación georreferenciados, con mapa de distribución de observaciones verificadas.</li>
+        <li style="margin-bottom:6px"><a href="https://es.wikipedia.org/" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none">Wikipedia ↗</a> — resumen taxonómico y ecológico de cada especie.</li>
+        <li style="margin-bottom:6px"><a href="https://www.marinespecies.org/" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none">WoRMS ↗</a> (World Register of Marine Species) — clasificación taxonómica y sinonimias para <strong style="color:var(--text)">invertebrados</strong>.</li>
+        <li style="margin-bottom:6px"><a href="https://www.fishbase.se/" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none">FishBase ↗</a> — base de datos taxonómica y ecológica para <strong style="color:var(--text)">peces</strong>.</li>
+        <li style="margin-bottom:6px"><a href="https://www.algaebase.org/" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none">AlgaeBase ↗</a> — base de datos taxonómica para <strong style="color:var(--text)">algas</strong>.</li>
       </ul>
+      <p>Los datos se cargan directamente desde cada plataforma, por lo que cualquier actualización en iNaturalist se refleja automáticamente en esta guía.</p>
 
       <h3 style="color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;margin:24px 0 8px">Contexto</h3>
-      <p>Desarrollada en el marco de la tesis doctoral de <strong style="color:var(--text)">Gonzalo Bravo</strong> (IBIOMAR–CONICET / UNPSJB) sobre comunidades submareales de la Patagonia argentina.</p>
+      <p>Esta guía fue elaborada en el marco de la tesis doctoral de <strong style="color:var(--text)">Gonzalo Bravo</strong> sobre comunidades de fondos rocosos submareales de la Patagonia argentina, con el apoyo de diversas instituciones y colaboradores de campo.</p>
+
+      <h3 style="color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;margin:24px 0 8px">Colaboradores</h3>
+      <p style="color:var(--muted);font-style:italic">[ Completar con nombres de colaboradores ]</p>
 
       <h3 style="color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;margin:24px 0 8px">Instituciones</h3>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
@@ -1015,7 +914,7 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
     <!-- Tabs -->
     <div class="sptabs">
       <button class="tabBtn on" data-t="desc">Descripción</button>
-      <button class="tabBtn"    data-t="taxo">Taxonomía</button>
+      <button class="tabBtn"    data-t="wiki">Wikipedia</button>
       <button class="tabBtn"    data-t="map">Mapa</button>
       <button class="tabBtn"    data-t="similar">Especies emparentadas</button>
     </div>
@@ -1024,8 +923,12 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
     <div class="tabarea">
       <div class="tc on" id="t-desc">
         <div class="aloading" id="descEl">Cargando…</div>
+        <div class="cooc-section" id="coocSection" style="display:none">
+          <div class="cooc-title">Suele observarse junto a</div>
+          <div class="cooc-chips" id="coocChips"></div>
+        </div>
       </div>
-      <div class="tc"    id="t-taxo"><div id="taxoEl"><p class="aloading">Cargando…</p></div></div>
+      <div class="tc"    id="t-wiki"><p class="aloading" id="wikiEl">Cargando…</p></div>
       <div class="tc"    id="t-map">
         <div id="spMap"></div>
         <p class="mapnote" id="mapNote"></p>
@@ -1059,7 +962,7 @@ const INV = new Set(['nudibranquios','gasterópodos','bivalvos','equinodermos','
   'anélidos','cefalópodos','hidrozoos','anemonas','corales','octocorales','medusas','placoforos',
   'sipuncúlidos','nemertinos','turbelarios','polplacoforos','quitones',
   'picnogónidos','ofiuras','holoturias','crinoideos','asteroideos','equinoideos',
-  'ctenophora','ctenóforos','ctenoforos','braquiópodos']);
+  'ctenophora','ctenóforos','ctenoforos']);
 const ALG = new Set(['algas','macroalgas','alga','clorofitas','rodofitas','feofitas']);
 const PEZ = new Set(['peces','pez','elasmobranquios','condricties','actinopterigios']);
 
@@ -1114,15 +1017,11 @@ const SUBGROUP_PARENT = {
 
 // Inverso: padre → lista ordenada de hijos (para buildSubSubChips)
 const SUBGROUP_CHILDREN = {
-  'moluscos':      ['gasterópodos','bivalvos','cefalópodos','placoforos','quitones'],
+  'moluscos':      ['gasterópodos','nudibranquios','bivalvos','cefalópodos','placoforos','quitones'],
   'equinodermos':  ['ofiuras','holoturias','asteroideos','equinoideos','crinoideos'],
   'cnidarios':     ['anemonas','octocorales','medusas'],
   'crustáceos':    ['cangrejos','camarones','cirripedios'],
   'anélidos':      ['poliquetos'],
-};
-// Cuarto nivel: sub-clase → lista de grupos dentro de ella
-const SUB3_CHILDREN = {
-  'gasterópodos': ['nudibranquios'],
 };
 
 const SCOL = {
@@ -1137,7 +1036,6 @@ const SCOL = {
   'cangrejos':'#d47a20','camarones':'#e8a060','cirripedios':'#b09040',
   'ctenophora':'#60c8b0','ctenóforos':'#60c8b0','ctenoforos':'#60c8b0',
   'anélidos':'#30c0a0','cefalópodos':'#6070c8','placoforos':'#b09060',
-  'braquiópodos':'#9b7a5a',
 };
 // Helper: color lookup case-insensitive
 const scol = tag => tag ? (SCOL[tag.toLowerCase()] || 'var(--accent)') : 'var(--accent)';
@@ -1173,7 +1071,6 @@ let fFondo    = 'all';
 let fMain     = 'all';
 let fSub      = 'all';
 let fSub2     = 'all';  // tercer nivel (ej: clases de equinodermos)
-let fSub3     = 'all';  // cuarto nivel (ej: nudibranquios dentro de gasterópodos)
 let q         = '';
 let leafMap   = null;
 
@@ -1211,20 +1108,11 @@ function subG(t) {
   }
   return general;
 }
-// Nivel 3: clase específica; nudibranquios se tratan como gasterópodos en este nivel
+// Nivel 3: clase específica si el tag es un hijo conocido
 function subGClass(t) {
   for (const tag of gtags(t)) {
     const tl = normTag(tag.toLowerCase());
-    if (tl === 'nudibranquios') return 'gasterópodos'; // nudibranquios son gasterópodos
     if (SUBGROUP_PARENT[tl]) return tl;
-  }
-  return null;
-}
-// Nivel 4: grupo dentro de la clase (ej: nudibranquios dentro de gasterópodos)
-function subGSub3(t) {
-  for (const tag of gtags(t)) {
-    const tl = normTag(tag.toLowerCase());
-    if (tl === 'nudibranquios') return 'nudibranquios';
   }
   return null;
 }
@@ -1244,21 +1132,13 @@ async function loadGuide() {
         }
         return t;
       })
-      .sort((a,b) => (a.position||999) - (b.position||999)); // iNat guide taxonomic order
-    // Pre-populate common names from the guide's own display_name
-    // (this is the title shown in iNat guide, e.g. "Estrella violeta")
-    taxa.forEach(t => {
-      if (t.display_name && t.display_name !== t.name) {
-        cnames[t.taxon_id] = t.display_name;
-      }
-    });
+      .sort((a,b) => sci(a).localeCompare(sci(b)));
     buildSubChips('all');
     renderGrid();
     fetchCnames();
     fetchCooc();
     fetchDescs();
     fetchFooterStats();
-    buildRichnessMap();
   } catch {
     grid.innerHTML = '<div class="cmsg">⚠️ Error al cargar la guía. Verificá tu conexión.</div>';
   }
@@ -1279,26 +1159,36 @@ async function fetchDescs() {
 }
 
 async function fetchFooterStats() {
+  /* Stats locales */
   const ftSp = document.getElementById('ftSpecies');
-  const ftAl = document.getElementById('ftAlgas');
-  const ftPe = document.getElementById('ftPeces');
-  const ftIn = document.getElementById('ftInverts');
+  const ftOb = document.getElementById('ftObs');
+  const ftGr = document.getElementById('ftGroups');
   if (ftSp) ftSp.textContent = taxa.length;
-  if (ftAl) ftAl.textContent = taxa.filter(t => mainG(t) === 'Algas').length;
-  if (ftPe) ftPe.textContent = taxa.filter(t => mainG(t) === 'Peces').length;
-  if (ftIn) ftIn.textContent = taxa.filter(t => mainG(t) === 'Invertebrados').length;
+  if (ftGr) {
+    const groups = new Set(taxa.map(mainG).filter(Boolean));
+    ftGr.textContent = groups.size;
+  }
+  /* Observaciones en iNat (sólo count) */
+  if (ftOb) {
+    try {
+      const ids = taxa.map(t=>t.taxon_id).join(',');
+      const r = await fetch(`${V1_API}/observations?taxon_id=${ids}&place_id=97389&quality_grade=research&per_page=0`);
+      const d = await r.json();
+      const total = d.total_results || 0;
+      ftOb.textContent = total >= 1000 ? (total/1000).toFixed(1)+'K+' : total;
+    } catch { ftOb.textContent = '—'; }
+  }
 }
 
 async function fetchCnames() {
   const ids = taxa.map(t=>t.taxon_id);
   for (let i=0; i<ids.length; i+=30) {
     try {
-      const r = await fetch(`${V1_API}/taxa?id=${ids.slice(i,i+30).join(',')}&per_page=30&locale=es`);
+      const r = await fetch(`${V1_API}/taxa?id=${ids.slice(i,i+30).join(',')}&per_page=30&locale=es-AR`);
       const d = await r.json();
       let upd = false;
       (d.results||[]).forEach(tx => {
-        // Only use iNat's preferred_common_name if no guide display_name was set
-        if (tx.preferred_common_name && !cnames[tx.id]) { cnames[tx.id] = tx.preferred_common_name; upd=true; }
+        if (tx.preferred_common_name) { cnames[tx.id] = tx.preferred_common_name; upd=true; }
         if (tx.ancestry) { ancestryMap[tx.id] = tx.ancestry + '/' + tx.id; upd=true; }
       });
       if (upd) renderGrid();
@@ -1333,20 +1223,12 @@ document.getElementById('subChips').addEventListener('click', e => {
   fSub = b.dataset.sub;
   setOn('subChips','[data-sub]','sub',fSub);
   buildSubSubChips(fSub === 'all' ? null : fSub);
-  buildSub3Chips(null);
   renderGrid();
 });
 document.getElementById('subChips2').addEventListener('click', e => {
   const b = e.target.closest('[data-sub2]'); if(!b) return;
   fSub2 = b.dataset.sub2;
   setOn('subChips2','[data-sub2]','sub2',fSub2);
-  buildSub3Chips(fSub2 === 'all' ? null : fSub2);
-  renderGrid();
-});
-document.getElementById('subChips3').addEventListener('click', e => {
-  const b = e.target.closest('[data-sub3]'); if(!b) return;
-  fSub3 = b.dataset.sub3;
-  setOn('subChips3','[data-sub3]','sub3',fSub3);
   renderGrid();
 });
 document.getElementById('searchInput').addEventListener('input', e => {
@@ -1376,33 +1258,11 @@ function buildSubChips(main) {
   });
 }
 
-function buildSub3Chips(sub2) {
-  const sep3  = document.getElementById('subSep3');
-  const wrap3 = document.getElementById('subChips3');
-  wrap3.innerHTML = '';
-  fSub3 = 'all';
-  if (!sub2 || !SUB3_CHILDREN[sub2.toLowerCase()]) { sep3.classList.remove('active'); return; }
-  const children = SUB3_CHILDREN[sub2.toLowerCase()];
-  const map = new Map();
-  taxa.forEach(t => {
-    const s3 = subGSub3(t);
-    if (s3 && children.includes(s3)) map.set(s3, (map.get(s3)||0)+1);
-  });
-  if (map.size === 0) { sep3.classList.remove('active'); return; }
-  sep3.classList.add('active');
-  wrap3.appendChild(mkChip('Todos','sub3','all',true,null));
-  children.forEach(cl => {
-    const cnt = map.get(cl)||0;
-    if (cnt > 0) wrap3.appendChild(mkChip(`${dispName(cl)} <small style="opacity:.55">${cnt}</small>`,'sub3',cl,false,scol(cl)||'#888'));
-  });
-}
-
 function buildSubSubChips(sub) {
   const sep2  = document.getElementById('subSep2');
   const wrap2 = document.getElementById('subChips2');
   wrap2.innerHTML = '';
   fSub2 = 'all';
-  buildSub3Chips(null); // reset nivel 4
   if (!sub || !SUBGROUP_CHILDREN[sub.toLowerCase()]) { sep2.classList.remove('active'); return; }
   const children = SUBGROUP_CHILDREN[sub.toLowerCase()];
   // Count species per child class
@@ -1443,11 +1303,6 @@ function filtered() {
       if (fSub2 !== 'all') {
         const cl = subGClass(t);
         if (!cl || cl !== fSub2.toLowerCase()) return false;
-        // Cuarto nivel: sub-clase dentro de la clase
-        if (fSub3 !== 'all') {
-          const s3 = subGSub3(t);
-          if (!s3 || s3 !== fSub3.toLowerCase()) return false;
-        }
       }
     }
     if (q) {
@@ -1469,13 +1324,7 @@ function taxoSort(a, b) {
     const pad = s => s.split('/').map(n => n.padStart(10,'0')).join('/');
     return pad(ka).localeCompare(pad(kb));
   }
-  // Fallback: use guide position (author set it in taxonomic order)
-  if (!ka && !kb) {
-    const pa = (a.position > 0) ? a.position : 99999;
-    const pb = (b.position > 0) ? b.position : 99999;
-    return pa - pb;
-  }
-  return ka ? -1 : 1;
+  return ka ? -1 : kb ? 1 : sci(a).localeCompare(sci(b));
 }
 
 function renderGrid() {
@@ -1497,12 +1346,6 @@ function renderGrid() {
 /* ────────────────────────────────────────────────
    CARD HTML
 ──────────────────────────────────────────────── */
-const GROUP_COLORS = {
-  'Algas':         '#56c96e',
-  'Peces':         '#4ca3e8',
-  'Invertebrados': '#f0964a',
-  'Ascidias':      '#a050c0',
-};
 function cardHTML(t, i) {
   const ph = (t.guide_photos||[])[0];
   const sn = sci(t);
@@ -1510,8 +1353,6 @@ function cardHTML(t, i) {
   const mg = mainG(t);
   const icon = mg==='Peces'?'🐟':mg==='Algas'?'🌿':'🦀';
   const num = String(i+1).padStart(2,'0');
-  const gc = GROUP_COLORS[mg] || '#8899aa';
-  const badge = mg ? `<span class="cgroup-badge" style="background:${gc}22;border:1px solid ${gc}66;color:${gc}">${mg}</span>` : '';
   return `
   <div class="card" data-id="${t.id}">
     <div class="card-img">
@@ -1521,7 +1362,6 @@ function cardHTML(t, i) {
     <div class="coverlay">
       <div class="csci">${sn}</div>
       ${cn?`<div class="ccommon">${cn}</div>`:''}
-      ${badge}
     </div>
   </div>`;
 }
@@ -1617,14 +1457,10 @@ function openSpecies(t) {
   } else {
     dbLink = `<a class="extbtn eb-worms" href="https://www.marinespecies.org/aphia.php?p=taxlist&tName=${enc}&marine_only=true" target="_blank">🐚 WoRMS ↗</a>`;
   }
-  const nudiLink = gtags(t).map(x=>x.toLowerCase()).includes('nudibranquios')
-    ? `<a class="extbtn eb-nudi" href="https://www.nudibranquiosargentina.com.ar/inicio" target="_blank" rel="noopener">🐌 Nudibranquios Argentina ↗</a>`
-    : '';
   document.getElementById('spLinks').innerHTML = `
     <a class="extbtn eb-inat"  href="${INAT_TAXON}${t.taxon_id}" target="_blank">🔭 iNaturalist ↗</a>
     <a class="extbtn eb-wiki"  href="https://es.wikipedia.org/wiki/${enc}" target="_blank">📖 Wikipedia ↗</a>
     ${dbLink}
-    ${nudiLink}
   `;
 
   /* ── Co-occurrence section ── */
@@ -1634,7 +1470,7 @@ function openSpecies(t) {
   document.querySelectorAll('.tabBtn').forEach(b=>b.classList.toggle('on',b.dataset.t==='desc'));
   document.querySelectorAll('.tc').forEach(c=>c.classList.toggle('on',c.id==='t-desc'));
   document.getElementById('descEl').innerHTML='<p class="aloading">Cargando descripción…</p>';
-  document.getElementById('taxoEl').innerHTML='<p class="aloading">Cargando taxonomía…</p>';
+  document.getElementById('wikiEl').innerHTML='<p class="aloading">Cargando Wikipedia…</p>';
   document.getElementById('mapNote').innerHTML='';
   document.getElementById('similarGrid').innerHTML='';
   if(leafMap){leafMap.remove();leafMap=null;}
@@ -1655,13 +1491,12 @@ function openSpecies(t) {
       document.getElementById(`t-${nb.dataset.t}`).classList.add('on');
       if(nb.dataset.t==='map'&&!mapInit){mapInit=true;initMap(t.taxon_id);}
       if(nb.dataset.t==='similar'&&!similarInit){similarInit=true;renderSimilar(t);}
-      if(nb.dataset.t==='taxo'){loadTaxonomy(t);}
     });
   });
 
   /* ── Load async data ── */
   loadDesc(t);
-  loadTaxonomy(t);
+  loadWiki(sn);
 }
 
 /* ────────────────────────────────────────────────
@@ -1859,54 +1694,29 @@ async function resolveWikispeciesUrl(sciName, genusEnc) {
 }
 
 /* ────────────────────────────────────────────────
-   TAXONOMY TAB — jerarquía taxonómica desde iNat
+   LOAD WIKIPEDIA
 ──────────────────────────────────────────────── */
-async function loadTaxonomy(t) {
-  const el = document.getElementById('taxoEl');
-  if (!el) return;
-  const sn  = sci(t);
-  const enc = encodeURIComponent(sn);
-  const mg  = mainG(t);
-  let dbLabel, dbHref;
-  if (mg === 'Peces') {
-    const parts = sn.split(' ');
-    dbLabel = 'FishBase';
-    dbHref  = `https://www.fishbase.se/summary/${parts[0]}-${parts[1]||''}.html`;
-  } else if (mg === 'Algas') {
-    dbLabel = 'AlgaeBase';
-    dbHref  = `https://www.algaebase.org/search/species/?name=${enc}`;
-  } else {
-    dbLabel = 'WoRMS';
-    dbHref  = `https://www.marinespecies.org/aphia.php?p=taxlist&tName=${enc}`;
-  }
-  const wikiBtn = `<a class="wikilink" href="${dbHref}" target="_blank" rel="noopener">Ver en ${dbLabel} →</a>`;
+async function loadWiki(name) {
+  const el=document.getElementById('wikiEl'); if(!el) return;
   try {
-    const r = await fetch(`${V1_API}/taxa/${t.taxon_id}?all_names=false`);
-    if (!r.ok) throw new Error();
-    const d = await r.json();
-    const taxon = (d.results||[])[0];
-    if (!taxon) throw new Error();
-    // Build ancestry chain: ancestors + self
-    const RANKS = ['kingdom','phylum','subphylum','class','order','family','genus','species'];
-    const RANK_ES = { kingdom:'Reino', phylum:'Filo', subphylum:'Subfilo', class:'Clase',
-                      order:'Orden', family:'Familia', genus:'Género', species:'Especie' };
-    const chain = [...(taxon.ancestors||[]), taxon];
-    const rows = RANKS.map(rank => {
-      const a = chain.find(x => x.rank === rank);
-      if (!a) return '';
-      const isLast = rank === 'species' || rank === taxon.rank;
-      return `<tr class="${isLast?'taxo-row-sp':'taxo-row'}">
-        <td class="taxo-rank">${RANK_ES[rank]||rank}</td>
-        <td class="taxo-name${isLast?' taxo-sp':''}">${a.name}</td>
-      </tr>`;
-    }).join('');
-    // Also capture stored ancestry for future sort
-    if (taxon.ancestry && !ancestryMap[t.taxon_id]) {
-      ancestryMap[t.taxon_id] = taxon.ancestry + '/' + t.taxon_id;
+    let r=await fetch(`https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
+    if(!r.ok) r=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
+    if(!r.ok) throw new Error();
+    const d=await r.json();
+    if(d.extract){
+      el.innerHTML=`
+        <div class="wikitext">
+          ${d.thumbnail?.source?`<img src="${d.thumbnail.source}" alt="">`:''}
+          <p>${d.extract}</p>
+        </div>
+        <a class="wikilink" href="${d.content_urls?.desktop?.page||`https://es.wikipedia.org/wiki/${encodeURIComponent(name)}`}" target="_blank">
+          Leer artículo completo en Wikipedia →
+        </a>`;
+    } else {
+      el.innerHTML=`<p class="aloading">Sin artículo en Wikipedia para <em>${name}</em>.</p>`;
     }
-    el.innerHTML = `<table class="taxo-table">${rows}</table>${wikiBtn}`;
   } catch {
-    el.innerHTML = `<p class="aloading" style="margin-bottom:16px">No se pudo cargar la taxonomía.</p>${wikiBtn}`;
+    el.innerHTML=`<p class="aloading">Sin artículo en Wikipedia para <em>${name}</em>.</p>`;
   }
 }
 
@@ -2012,119 +1822,6 @@ aboutOverlay.addEventListener('click', e => {
 });
 
 loadGuide();
-
-/* ────────────────────────────────────────────────
-   RICHNESS HEATMAP
-   Fetches observations for all guide species from
-   iNat API, bins them into 0.3° grid cells, and
-   renders a choropleth of species richness on Leaflet.
-──────────────────────────────────────────────── */
-async function buildRichnessMap() {
-  const mapEl    = document.getElementById('richnessMap');
-  const loadEl   = document.getElementById('richnessLoading');
-  const legendEl = document.getElementById('richnessLegend');
-  const metaEl   = document.getElementById('richnessMetaLabel');
-  if (!mapEl || typeof L === 'undefined') return;
-
-  // Init Leaflet — dark basemap, centered on Patagonian coast
-  const rmap = L.map(mapEl, {
-    center: [-45.5, -63],
-    zoom: 5,
-    zoomControl: true,
-    attributionControl: true,
-    scrollWheelZoom: false,
-  });
-
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Esri, Garmin, GEBCO, NOAA',
-    maxZoom: 13
-  }).addTo(rmap);
-
-  // Fetch observations in batches of 20 taxa
-  const CELL = 0.3; // degrees (~33 km)
-  const grid  = {};  // "row_col" → Set of taxon_ids
-
-  function cellKey(lat, lng) {
-    return `${Math.floor(lat / CELL)}_${Math.floor(lng / CELL)}`;
-  }
-  function cellBounds(key) {
-    const [r, c] = key.split('_').map(Number);
-    return [[r * CELL, c * CELL], [(r+1) * CELL, (c+1) * CELL]];
-  }
-
-  const ids    = taxa.map(t => t.taxon_id).filter(Boolean);
-  const BATCH  = 20;
-  let   totalObs = 0;
-
-  for (let i = 0; i < ids.length; i += BATCH) {
-    const chunk = ids.slice(i, i + BATCH).join(',');
-    try {
-      const r = await fetch(
-        `${V1_API}/observations?taxon_id=${chunk}` +
-        `&swlat=-56&swlng=-74&nelat=-21&nelng=-52` +
-        `&per_page=200&geo=true&quality_grade=research`
-      );
-      const d = await r.json();
-      (d.results || []).forEach(obs => {
-        if (!obs.location) return;
-        const [lat, lng] = obs.location.split(',').map(Number);
-        if (isNaN(lat) || isNaN(lng)) return;
-        const key = cellKey(lat, lng);
-        if (!grid[key]) grid[key] = new Set();
-        grid[key].add(obs.taxon?.id || chunk.split(',')[0]);
-        totalObs++;
-      });
-    } catch {}
-    // Small pause to respect rate limit
-    await new Promise(res => setTimeout(res, 180));
-  }
-
-  if (loadEl) loadEl.style.display = 'none';
-
-  const counts   = Object.values(grid).map(s => s.size);
-  const maxCount = Math.max(...counts, 1);
-
-  // Color scale: 1 sp = dark navy → maxCount = bright teal
-  function richColor(n) {
-    const t = Math.sqrt((n - 1) / Math.max(maxCount - 1, 1)); // sqrt for perceptual balance
-    const r = Math.round(0   + t * 30);
-    const g = Math.round(80  + t * 121);
-    const b = Math.round(130 + t * 82);
-    const a = 0.45 + t * 0.40;
-    return `rgba(${r},${g},${b},${a})`;
-  }
-
-  Object.entries(grid).forEach(([key, taxaSet]) => {
-    const n      = taxaSet.size;
-    const bounds = cellBounds(key);
-    L.rectangle(bounds, {
-      color:       richColor(n),
-      fillColor:   richColor(n),
-      fillOpacity: 1,
-      weight:      0.3,
-      opacity:     0.5,
-    })
-    .bindTooltip(`${n} especie${n>1?'s':''}`, { sticky: true, className: 'richness-tt' })
-    .addTo(rmap);
-  });
-
-  // Build legend gradient
-  const scaleEl = document.getElementById('richnessScale');
-  const maxLab  = document.getElementById('richnessMax');
-  if (scaleEl && maxCount > 1) {
-    const steps = 8;
-    for (let s = 1; s <= steps; s++) {
-      const bar = document.createElement('div');
-      bar.className = 'richness-legend-bar';
-      bar.style.cssText = `width:${120/steps}px;background:${richColor(Math.round(1+(s-1)*(maxCount-1)/(steps-1)))}`;
-      scaleEl.appendChild(bar);
-    }
-    if (maxLab) maxLab.textContent = maxCount;
-    if (legendEl) legendEl.style.display = 'block';
-  }
-
-  if (metaEl) metaEl.textContent = `${totalObs.toLocaleString()} observaciones · ${Object.keys(grid).length} celdas`;
-}
 </script>
 </body>
 </html>
