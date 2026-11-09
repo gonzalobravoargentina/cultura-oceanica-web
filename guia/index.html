@@ -613,6 +613,70 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
 .aloading { font-size: .82rem; color: var(--muted); font-style: italic; }
 
 /* ================================================
+   RICHNESS MAP SECTION
+================================================ */
+.richness-section {
+  width: 100%;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.richness-heading {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 22px 20px 14px; max-width: 1600px; margin: 0 auto;
+}
+.richness-title {
+  font-family: var(--co-font-display);
+  font-size: 1.5rem; font-weight: 900; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text);
+}
+.richness-meta {
+  font-family: var(--co-font-display);
+  font-size: .68rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted);
+}
+.richness-map-wrap {
+  position: relative;
+  width: 100%;
+  height: 420px;
+}
+#richnessMap {
+  width: 100%; height: 100%;
+}
+.richness-legend {
+  position: absolute;
+  bottom: 20px; left: 20px;
+  z-index: 1000;
+  background: rgba(4, 10, 22, 0.82);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  backdrop-filter: blur(6px);
+}
+.richness-legend-title {
+  font-family: var(--co-font-display);
+  font-size: .58rem; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+}
+.richness-legend-scale {
+  display: flex; align-items: center; gap: 2px;
+}
+.richness-legend-bar {
+  height: 8px; border-radius: 2px;
+}
+.richness-legend-labels {
+  display: flex; justify-content: space-between;
+  font-family: var(--co-font-display); font-size: .6rem;
+  letter-spacing: 1px; color: var(--muted); margin-top: 4px;
+}
+.richness-loading {
+  position: absolute; inset: 0; display: flex;
+  align-items: center; justify-content: center;
+  font-family: var(--co-font-display); font-size: .72rem;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+  pointer-events: none;
+}
+
+/* ================================================
    FOOTER
 ================================================ */
 .site-footer {
@@ -806,6 +870,25 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
 <div class="grid" id="grid">
   <div class="cmsg"><div class="spin"></div>Cargando especies desde iNaturalist…</div>
 </div>
+
+<!-- ════════════════════ RICHNESS MAP ════════════════════ -->
+<section class="richness-section">
+  <div class="richness-heading">
+    <span class="richness-title">Distribución costera</span>
+    <span class="richness-meta" id="richnessMetaLabel">Cargando observaciones…</span>
+  </div>
+  <div class="richness-map-wrap">
+    <div id="richnessMap"></div>
+    <div class="richness-loading" id="richnessLoading">Cargando observaciones…</div>
+    <div class="richness-legend" id="richnessLegend" style="display:none">
+      <div class="richness-legend-title">Riqueza de especies</div>
+      <div class="richness-legend-scale" id="richnessScale"></div>
+      <div class="richness-legend-labels">
+        <span>1</span><span id="richnessMax">—</span>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- ════════════════════ FOOTER ════════════════════ -->
 <footer class="site-footer">
@@ -1145,6 +1228,7 @@ async function loadGuide() {
     fetchCooc();
     fetchDescs();
     fetchFooterStats();
+    buildRichnessMap();
   } catch {
     grid.innerHTML = '<div class="cmsg">⚠️ Error al cargar la guía. Verificá tu conexión.</div>';
   }
@@ -1827,6 +1911,118 @@ aboutOverlay.addEventListener('click', e => {
 });
 
 loadGuide();
+
+/* ────────────────────────────────────────────────
+   RICHNESS HEATMAP
+   Fetches observations for all guide species from
+   iNat API, bins them into 0.3° grid cells, and
+   renders a choropleth of species richness on Leaflet.
+──────────────────────────────────────────────── */
+async function buildRichnessMap() {
+  const mapEl    = document.getElementById('richnessMap');
+  const loadEl   = document.getElementById('richnessLoading');
+  const legendEl = document.getElementById('richnessLegend');
+  const metaEl   = document.getElementById('richnessMetaLabel');
+  if (!mapEl || typeof L === 'undefined') return;
+
+  // Init Leaflet — dark basemap, centered on Patagonian coast
+  const rmap = L.map(mapEl, {
+    center: [-45.5, -63],
+    zoom: 5,
+    zoomControl: true,
+    attributionControl: true,
+    scrollWheelZoom: false,
+  });
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO',
+    subdomains: 'abcd', maxZoom: 19
+  }).addTo(rmap);
+
+  // Fetch observations in batches of 20 taxa
+  const CELL = 0.3; // degrees (~33 km)
+  const grid  = {};  // "row_col" → Set of taxon_ids
+
+  function cellKey(lat, lng) {
+    return `${Math.floor(lat / CELL)}_${Math.floor(lng / CELL)}`;
+  }
+  function cellBounds(key) {
+    const [r, c] = key.split('_').map(Number);
+    return [[r * CELL, c * CELL], [(r+1) * CELL, (c+1) * CELL]];
+  }
+
+  const ids    = taxa.map(t => t.taxon_id).filter(Boolean);
+  const BATCH  = 20;
+  let   totalObs = 0;
+
+  for (let i = 0; i < ids.length; i += BATCH) {
+    const chunk = ids.slice(i, i + BATCH).join(',');
+    try {
+      const r = await fetch(
+        `${V1_API}/observations?taxon_id=${chunk}&place_id=7036` +
+        `&per_page=200&geo=true&quality_grade=research&fields=taxon.id,location`
+      );
+      const d = await r.json();
+      (d.results || []).forEach(obs => {
+        if (!obs.location) return;
+        const [lat, lng] = obs.location.split(',').map(Number);
+        if (isNaN(lat) || isNaN(lng)) return;
+        const key = cellKey(lat, lng);
+        if (!grid[key]) grid[key] = new Set();
+        grid[key].add(obs.taxon?.id || chunk.split(',')[0]);
+        totalObs++;
+      });
+    } catch {}
+    // Small pause to respect rate limit
+    await new Promise(res => setTimeout(res, 180));
+  }
+
+  if (loadEl) loadEl.style.display = 'none';
+
+  const counts   = Object.values(grid).map(s => s.size);
+  const maxCount = Math.max(...counts, 1);
+
+  // Color scale: 1 sp = dark navy → maxCount = bright teal
+  function richColor(n) {
+    const t = Math.sqrt((n - 1) / Math.max(maxCount - 1, 1)); // sqrt for perceptual balance
+    const r = Math.round(0   + t * 30);
+    const g = Math.round(80  + t * 121);
+    const b = Math.round(130 + t * 82);
+    const a = 0.45 + t * 0.40;
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  Object.entries(grid).forEach(([key, taxaSet]) => {
+    const n      = taxaSet.size;
+    const bounds = cellBounds(key);
+    L.rectangle(bounds, {
+      color:       richColor(n),
+      fillColor:   richColor(n),
+      fillOpacity: 1,
+      weight:      0.3,
+      opacity:     0.5,
+    })
+    .bindTooltip(`${n} especie${n>1?'s':''}`, { sticky: true, className: 'richness-tt' })
+    .addTo(rmap);
+  });
+
+  // Build legend gradient
+  const scaleEl = document.getElementById('richnessScale');
+  const maxLab  = document.getElementById('richnessMax');
+  if (scaleEl && maxCount > 1) {
+    const steps = 8;
+    for (let s = 1; s <= steps; s++) {
+      const bar = document.createElement('div');
+      bar.className = 'richness-legend-bar';
+      bar.style.cssText = `width:${120/steps}px;background:${richColor(Math.round(1+(s-1)*(maxCount-1)/(steps-1)))}`;
+      scaleEl.appendChild(bar);
+    }
+    if (maxLab) maxLab.textContent = maxCount;
+    if (legendEl) legendEl.style.display = 'block';
+  }
+
+  if (metaEl) metaEl.textContent = `${totalObs.toLocaleString()} observaciones · ${Object.keys(grid).length} celdas`;
+}
 </script>
 </body>
 </html>
