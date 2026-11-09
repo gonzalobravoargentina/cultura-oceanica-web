@@ -868,6 +868,11 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
     <span class="flbl" style="opacity:.4">↳↳</span>
     <div class="chips" id="subChips2"></div>
   </div>
+  <!-- Row 6: Sub-sub-subgrupos (ej: nudibranquios dentro de gasterópodos) -->
+  <div class="sub-sep" id="subSep3">
+    <span class="flbl" style="opacity:.25">↳↳↳</span>
+    <div class="chips" id="subChips3"></div>
+  </div>
 </div>
 
 <!-- ════════════════════ SECTION HEADING ════════════════════ -->
@@ -1109,11 +1114,15 @@ const SUBGROUP_PARENT = {
 
 // Inverso: padre → lista ordenada de hijos (para buildSubSubChips)
 const SUBGROUP_CHILDREN = {
-  'moluscos':      ['gasterópodos','nudibranquios','bivalvos','cefalópodos','placoforos','quitones'],
+  'moluscos':      ['gasterópodos','bivalvos','cefalópodos','placoforos','quitones'],
   'equinodermos':  ['ofiuras','holoturias','asteroideos','equinoideos','crinoideos'],
   'cnidarios':     ['anemonas','octocorales','medusas'],
   'crustáceos':    ['cangrejos','camarones','cirripedios'],
   'anélidos':      ['poliquetos'],
+};
+// Cuarto nivel: sub-clase → lista de grupos dentro de ella
+const SUB3_CHILDREN = {
+  'gasterópodos': ['nudibranquios'],
 };
 
 const SCOL = {
@@ -1164,6 +1173,7 @@ let fFondo    = 'all';
 let fMain     = 'all';
 let fSub      = 'all';
 let fSub2     = 'all';  // tercer nivel (ej: clases de equinodermos)
+let fSub3     = 'all';  // cuarto nivel (ej: nudibranquios dentro de gasterópodos)
 let q         = '';
 let leafMap   = null;
 
@@ -1201,11 +1211,20 @@ function subG(t) {
   }
   return general;
 }
-// Nivel 3: clase específica si el tag es un hijo conocido
+// Nivel 3: clase específica; nudibranquios se tratan como gasterópodos en este nivel
 function subGClass(t) {
   for (const tag of gtags(t)) {
     const tl = normTag(tag.toLowerCase());
+    if (tl === 'nudibranquios') return 'gasterópodos'; // nudibranquios son gasterópodos
     if (SUBGROUP_PARENT[tl]) return tl;
+  }
+  return null;
+}
+// Nivel 4: grupo dentro de la clase (ej: nudibranquios dentro de gasterópodos)
+function subGSub3(t) {
+  for (const tag of gtags(t)) {
+    const tl = normTag(tag.toLowerCase());
+    if (tl === 'nudibranquios') return 'nudibranquios';
   }
   return null;
 }
@@ -1314,12 +1333,20 @@ document.getElementById('subChips').addEventListener('click', e => {
   fSub = b.dataset.sub;
   setOn('subChips','[data-sub]','sub',fSub);
   buildSubSubChips(fSub === 'all' ? null : fSub);
+  buildSub3Chips(null);
   renderGrid();
 });
 document.getElementById('subChips2').addEventListener('click', e => {
   const b = e.target.closest('[data-sub2]'); if(!b) return;
   fSub2 = b.dataset.sub2;
   setOn('subChips2','[data-sub2]','sub2',fSub2);
+  buildSub3Chips(fSub2 === 'all' ? null : fSub2);
+  renderGrid();
+});
+document.getElementById('subChips3').addEventListener('click', e => {
+  const b = e.target.closest('[data-sub3]'); if(!b) return;
+  fSub3 = b.dataset.sub3;
+  setOn('subChips3','[data-sub3]','sub3',fSub3);
   renderGrid();
 });
 document.getElementById('searchInput').addEventListener('input', e => {
@@ -1349,11 +1376,33 @@ function buildSubChips(main) {
   });
 }
 
+function buildSub3Chips(sub2) {
+  const sep3  = document.getElementById('subSep3');
+  const wrap3 = document.getElementById('subChips3');
+  wrap3.innerHTML = '';
+  fSub3 = 'all';
+  if (!sub2 || !SUB3_CHILDREN[sub2.toLowerCase()]) { sep3.classList.remove('active'); return; }
+  const children = SUB3_CHILDREN[sub2.toLowerCase()];
+  const map = new Map();
+  taxa.forEach(t => {
+    const s3 = subGSub3(t);
+    if (s3 && children.includes(s3)) map.set(s3, (map.get(s3)||0)+1);
+  });
+  if (map.size === 0) { sep3.classList.remove('active'); return; }
+  sep3.classList.add('active');
+  wrap3.appendChild(mkChip('Todos','sub3','all',true,null));
+  children.forEach(cl => {
+    const cnt = map.get(cl)||0;
+    if (cnt > 0) wrap3.appendChild(mkChip(`${dispName(cl)} <small style="opacity:.55">${cnt}</small>`,'sub3',cl,false,scol(cl)||'#888'));
+  });
+}
+
 function buildSubSubChips(sub) {
   const sep2  = document.getElementById('subSep2');
   const wrap2 = document.getElementById('subChips2');
   wrap2.innerHTML = '';
   fSub2 = 'all';
+  buildSub3Chips(null); // reset nivel 4
   if (!sub || !SUBGROUP_CHILDREN[sub.toLowerCase()]) { sep2.classList.remove('active'); return; }
   const children = SUBGROUP_CHILDREN[sub.toLowerCase()];
   // Count species per child class
@@ -1394,6 +1443,11 @@ function filtered() {
       if (fSub2 !== 'all') {
         const cl = subGClass(t);
         if (!cl || cl !== fSub2.toLowerCase()) return false;
+        // Cuarto nivel: sub-clase dentro de la clase
+        if (fSub3 !== 'all') {
+          const s3 = subGSub3(t);
+          if (!s3 || s3 !== fSub3.toLowerCase()) return false;
+        }
       }
     }
     if (q) {
@@ -1568,6 +1622,7 @@ function openSpecies(t) {
     : '';
   document.getElementById('spLinks').innerHTML = `
     <a class="extbtn eb-inat"  href="${INAT_TAXON}${t.taxon_id}" target="_blank">🔭 iNaturalist ↗</a>
+    <a class="extbtn eb-wiki"  href="https://es.wikipedia.org/wiki/${enc}" target="_blank">📖 Wikipedia ↗</a>
     ${dbLink}
     ${nudiLink}
   `;
@@ -2005,7 +2060,8 @@ async function buildRichnessMap() {
     const chunk = ids.slice(i, i + BATCH).join(',');
     try {
       const r = await fetch(
-        `${V1_API}/observations?taxon_id=${chunk}&place_id=7036` +
+        `${V1_API}/observations?taxon_id=${chunk}` +
+        `&swlat=-56&swlng=-74&nelat=-21&nelng=-52` +
         `&per_page=200&geo=true&quality_grade=research`
       );
       const d = await r.json();
