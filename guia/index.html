@@ -708,6 +708,14 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
   box-shadow: 0 8px 32px rgba(0,0,0,.7) !important;
 }
 .rmap-popup .leaflet-popup-tip { background: rgba(4,10,22,0.95) !important; }
+/* Number labels on polygons */
+.rmap-num {
+  font-family: var(--co-font-display, sans-serif);
+  font-size: .82rem; font-weight: 900; color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,.85), 0 0 8px rgba(0,0,0,.6);
+  text-align: center; line-height: 1; pointer-events: none;
+  white-space: nowrap;
+}
 
 /* ================================================
    FOOTER
@@ -918,6 +926,7 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
       <button class="rmap-lbtn" data-layer="Algas">Algas</button>
       <button class="rmap-lbtn" data-layer="Peces">Peces</button>
       <button class="rmap-lbtn" data-layer="Invertebrados">Invertebrados</button>
+      <button class="rmap-lbtn" data-layer="obs">Observaciones</button>
     </div>
     <span class="richness-meta" id="richnessMetaLabel">Cargando observaciones…</span>
   </div>
@@ -2044,9 +2053,9 @@ loadGuide();
 
 /* ────────────────────────────────────────────────
    RICHNESS MAP — Polygon zones from KML
-   Fetches observations for all guide species,
-   bins them into named coastal zones, and renders
-   a choropleth with group-layer filtering.
+   Fetches ALL observations (no quality filter) for
+   guide species, bins them into named coastal zones.
+   Layer filters: Todos / Algas / Peces / Invertebrados / Observaciones
 ──────────────────────────────────────────────── */
 async function buildRichnessMap() {
   const mapEl    = document.getElementById('richnessMap');
@@ -2055,7 +2064,7 @@ async function buildRichnessMap() {
   const metaEl   = document.getElementById('richnessMetaLabel');
   if (!mapEl || typeof L === 'undefined') return;
 
-  // ── KML polygon zones (coordinates in [lat, lng]) ──────────
+  // ── KML polygon zones [lat, lng] ───────────────────────────
   const ZONES = [
     { id:'USH',  name:'Ushuaia', coords:[
       [-54.659,-68.729],[-55.062,-68.730],[-55.168,-65.046],[-54.541,-64.971]
@@ -2103,9 +2112,9 @@ async function buildRichnessMap() {
     ]}
   ];
 
-  // ── Leaflet map ─────────────────────────────────────────────
+  // ── Leaflet map — fit Argentina coast ──────────────────────
   const rmap = L.map(mapEl, {
-    center: [-45.5, -63],
+    center: [-41, -63],
     zoom: 4,
     zoomControl: true,
     attributionControl: true,
@@ -2130,18 +2139,21 @@ async function buildRichnessMap() {
     return inside;
   }
 
-  // ── Zone data: per-zone sets of taxon_ids per group ─────────
+  // ── Zone data ───────────────────────────────────────────────
   const zoneData = {};
   ZONES.forEach(z => {
     zoneData[z.id] = {
-      all: new Set(), Algas: new Set(), Peces: new Set(), Invertebrados: new Set()
+      all: new Set(), Algas: new Set(), Peces: new Set(), Invertebrados: new Set(),
+      obs_all: 0,
+      rodofitas: new Set(), clorofitas: new Set(), feofitas: new Set(),
+      inv_groups: {}  // subgroup → Set of species
     };
   });
 
-  // ── Guide taxon_id → taxon object map ───────────────────────
+  // Guide taxon_id → taxon object
   const guideTaxonMap = new Map(taxa.map(t => [t.taxon_id, t]));
 
-  // ── Fetch observations in batches ───────────────────────────
+  // ── Fetch ALL observations (no quality filter) ─────────────
   const ids   = taxa.map(t => t.taxon_id).filter(Boolean);
   const BATCH = 20;
   let totalObs = 0;
@@ -2152,7 +2164,7 @@ async function buildRichnessMap() {
       const r = await fetch(
         `${V1_API}/observations?taxon_id=${chunk}` +
         `&swlat=-56&swlng=-74&nelat=-21&nelng=-52` +
-        `&per_page=200&geo=true&quality_grade=research`
+        `&per_page=200&geo=true`
       );
       const d = await r.json();
       (d.results || []).forEach(obs => {
@@ -2161,20 +2173,31 @@ async function buildRichnessMap() {
         if (isNaN(lat) || isNaN(lng)) return;
         const tid = obs.taxon?.id;
         if (!tid) return;
-        // Find guide taxon (direct match, or fall back to queried IDs in this batch)
+        // Match to guide taxon (direct or via ancestors)
         let gt = guideTaxonMap.get(tid);
         if (!gt) {
-          // Try ancestors reported by iNat
           for (const aid of (obs.taxon?.ancestor_ids || [])) {
             if (guideTaxonMap.has(aid)) { gt = guideTaxonMap.get(aid); break; }
           }
         }
         if (!gt) return;
-        const group = mainG(gt); // 'Algas' | 'Peces' | 'Invertebrados'
+        const group  = mainG(gt);
+        const algSub = (group === 'Algas') ? subG(gt) : null;
+        const invSub = (group === 'Invertebrados') ? subG(gt) : null;
+
         for (const zone of ZONES) {
           if (pip(lat, lng, zone.coords)) {
-            zoneData[zone.id].all.add(tid);
-            if (group) zoneData[zone.id][group].add(tid);
+            const zd = zoneData[zone.id];
+            zd.all.add(tid);
+            if (group) zd[group] && zd[group].add(tid);
+            // Alga subtypes
+            if (algSub && ALG_SPECIFIC.has(algSub)) zd[algSub].add(tid);
+            // Inv subgroups (top-level: moluscos, equinodermos, crustáceos, etc.)
+            if (invSub) {
+              if (!zd.inv_groups[invSub]) zd.inv_groups[invSub] = new Set();
+              zd.inv_groups[invSub].add(tid);
+            }
+            zd.obs_all++;
             break;
           }
         }
@@ -2186,63 +2209,133 @@ async function buildRichnessMap() {
 
   if (loadEl) loadEl.style.display = 'none';
 
-  // ── Color scale ─────────────────────────────────────────────
-  const GROUP_COLORS = {
-    all:           (t) => `rgba(${Math.round(t*30)},${Math.round(80+t*121)},${Math.round(130+t*82)},${0.35+t*0.45})`,
-    Algas:         (t) => `rgba(${Math.round(t*20)},${Math.round(100+t*140)},${Math.round(60+t*60)},${0.30+t*0.50})`,
-    Peces:         (t) => `rgba(${Math.round(t*20)},${Math.round(80+t*120)},${Math.round(140+t*80)},${0.30+t*0.50})`,
-    Invertebrados: (t) => `rgba(${Math.round(100+t*125)},${Math.round(60+t*60)},${Math.round(t*60)},${0.30+t*0.50})`,
+  // ── Color scales ────────────────────────────────────────────
+  const CSCALE = {
+    all:           t => `rgba(${Math.round(t*30)},${Math.round(80+t*121)},${Math.round(130+t*82)},${0.30+t*0.50})`,
+    Algas:         t => `rgba(${Math.round(t*20)},${Math.round(100+t*140)},${Math.round(60+t*60)},${0.28+t*0.52})`,
+    Peces:         t => `rgba(${Math.round(t*20)},${Math.round(80+t*120)},${Math.round(140+t*80)},${0.28+t*0.52})`,
+    Invertebrados: t => `rgba(${Math.round(100+t*125)},${Math.round(60+t*60)},${Math.round(t*60)},${0.28+t*0.52})`,
+    obs:           t => `rgba(${Math.round(60+t*195)},${Math.round(30+t*120)},${Math.round(t*40)},${0.28+t*0.52})`,
   };
 
   function zoneColor(n, maxN, layer) {
-    if (n === 0) return 'rgba(10,18,36,0.45)';
-    const t = Math.sqrt(n / Math.max(maxN, 1));
-    const fn = GROUP_COLORS[layer] || GROUP_COLORS.all;
+    if (n === 0) return 'rgba(10,18,36,0.40)';
+    const t  = Math.sqrt(n / Math.max(maxN, 1));
+    const fn = CSCALE[layer] || CSCALE.all;
     return fn(t);
   }
 
-  // ── Polygon rendering ────────────────────────────────────────
-  const polygonLayer = L.layerGroup().addTo(rmap);
-
+  // ── Count per zone per layer ─────────────────────────────────
   function countOf(zid, layer) {
+    if (layer === 'obs') return zoneData[zid].obs_all;
     return (zoneData[zid][layer] || zoneData[zid].all).size;
   }
   function maxOf(layer) {
     return Math.max(...ZONES.map(z => countOf(z.id, layer)), 1);
   }
 
+  // ── Popup HTML builder ───────────────────────────────────────
+  function buildPopup(zone, layer) {
+    const d = zoneData[zone.id];
+    let h = `<div style="font-family:var(--co-font-display,sans-serif);min-width:170px">`;
+    h += `<div style="font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:#00c9d4;margin-bottom:7px">${zone.name}</div>`;
+
+    if (layer === 'obs') {
+      h += `<div style="font-size:1.05rem;font-weight:900;color:#fff;margin-bottom:8px">${d.obs_all.toLocaleString()} observaciones</div>`;
+      h += `<div style="font-size:.72rem;color:#8899aa;line-height:1.9">`;
+      h += `🌿 Algas <b style="color:#3dd68c;float:right;margin-left:16px">${d.Algas.size}</b><br>`;
+      h += `🐟 Peces <b style="color:#74b9ff;float:right;margin-left:16px">${d.Peces.size}</b><br>`;
+      h += `🐚 Invertebrados <b style="color:#fab1a0;float:right;margin-left:16px">${d.Invertebrados.size}</b>`;
+      h += `</div>`;
+    } else if (layer === 'Algas') {
+      h += `<div style="font-size:1.05rem;font-weight:900;color:#fff;margin-bottom:8px">${d.Algas.size} algas en la guía</div>`;
+      h += `<div style="font-size:.72rem;color:#8899aa;line-height:1.9">`;
+      h += `🔴 Rojas <b style="color:#ff7675;float:right;margin-left:16px">${d.rodofitas.size}</b><br>`;
+      h += `🟢 Verdes <b style="color:#55efc4;float:right;margin-left:16px">${d.clorofitas.size}</b><br>`;
+      h += `🟤 Pardas <b style="color:#fdcb6e;float:right;margin-left:16px">${d.feofitas.size}</b>`;
+      h += `</div>`;
+    } else if (layer === 'Peces') {
+      h += `<div style="font-size:1.05rem;font-weight:900;color:#fff">${d.Peces.size} peces en la guía</div>`;
+    } else if (layer === 'Invertebrados') {
+      h += `<div style="font-size:1.05rem;font-weight:900;color:#fff;margin-bottom:8px">${d.Invertebrados.size} invertebrados en la guía</div>`;
+      const groups = Object.entries(d.inv_groups)
+        .filter(([,s]) => s.size > 0)
+        .sort(([,a],[,b]) => b.size - a.size);
+      if (groups.length > 0) {
+        h += `<div style="font-size:.72rem;color:#8899aa;line-height:1.9">`;
+        for (const [grp, s] of groups) {
+          const col = SCOL[grp] || '#fab1a0';
+          const lbl = dispName(grp.charAt(0).toUpperCase() + grp.slice(1));
+          h += `${lbl} <b style="color:${col};float:right;margin-left:8px">${s.size}</b><br>`;
+        }
+        h += `</div>`;
+      }
+    } else { // 'all'
+      h += `<div style="font-size:1.05rem;font-weight:900;color:#fff;margin-bottom:8px">${d.all.size} especie${d.all.size !== 1?'s':''} en la guía</div>`;
+      h += `<div style="font-size:.72rem;color:#8899aa;line-height:1.9">`;
+      h += `🌿 Algas <b style="color:#3dd68c;float:right;margin-left:16px">${d.Algas.size}</b><br>`;
+      h += `🐟 Peces <b style="color:#74b9ff;float:right;margin-left:16px">${d.Peces.size}</b><br>`;
+      h += `🐚 Invertebrados <b style="color:#fab1a0;float:right;margin-left:16px">${d.Invertebrados.size}</b>`;
+      h += `</div>`;
+    }
+    h += `</div>`;
+    return h;
+  }
+
+  // ── Polygon + number label rendering ───────────────────────
+  const polygonLayer = L.layerGroup().addTo(rmap);
+
+  function centroid(coords) {
+    return [
+      coords.reduce((s,c) => s+c[0], 0) / coords.length,
+      coords.reduce((s,c) => s+c[1], 0) / coords.length
+    ];
+  }
+
+  function fmtN(n, layer) {
+    if (layer === 'obs') return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n);
+    return String(n);
+  }
+
   function drawPolygons(layer) {
     polygonLayer.clearLayers();
     const mx = maxOf(layer);
+
     ZONES.forEach(zone => {
-      const n    = countOf(zone.id, layer);
-      const col  = zoneColor(n, mx, layer);
-      const d    = zoneData[zone.id];
+      const n   = countOf(zone.id, layer);
+      const col = zoneColor(n, mx, layer);
       const poly = L.polygon(zone.coords, {
         color:       'rgba(0,201,212,0.55)',
         weight:      1.5,
         fillColor:   col,
         fillOpacity: 1,
       });
-      poly.bindPopup(
-        `<div style="font-family:var(--co-font-display,sans-serif);min-width:170px">` +
-        `<div style="font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:#00c9d4;margin-bottom:8px">${zone.name}</div>` +
-        `<div style="font-size:1.05rem;font-weight:900;color:#fff;margin-bottom:8px">${d.all.size} especie${d.all.size !== 1?'s':''} en la guía</div>` +
-        `<div style="font-size:.72rem;line-height:1.9;color:#8899aa">` +
-        `🌿 Algas <b style="color:#3dd68c;float:right;margin-left:16px">${d.Algas.size}</b><br>` +
-        `🐟 Peces <b style="color:#74b9ff;float:right;margin-left:16px">${d.Peces.size}</b><br>` +
-        `🐚 Invertebrados <b style="color:#fab1a0;float:right;margin-left:16px">${d.Invertebrados.size}</b>` +
-        `</div></div>`,
-        { className: 'rmap-popup', maxWidth: 240 }
-      );
+      poly.bindPopup(buildPopup(zone, layer), { className: 'rmap-popup', maxWidth: 250 });
       poly.on('mouseover', function() { this.setStyle({ weight: 2.5, color: 'rgba(0,201,212,0.9)' }); });
       poly.on('mouseout',  function() { this.setStyle({ weight: 1.5, color: 'rgba(0,201,212,0.55)' }); });
       polygonLayer.addLayer(poly);
+
+      // Number label at centroid — only if polygon has data
+      if (n > 0) {
+        const ctr = centroid(zone.coords);
+        const numM = L.marker(ctr, {
+          icon: L.divIcon({
+            html: `<div class="rmap-num">${fmtN(n, layer)}</div>`,
+            className: '',
+            iconSize: [48, 20],
+            iconAnchor: [24, 10],
+          }),
+          interactive: false,
+          zIndexOffset: 10,
+        });
+        polygonLayer.addLayer(numM);
+      }
     });
+
     updateLegend(layer, mx);
   }
 
-  // ── Legend ───────────────────────────────────────────────────
+  // ── Legend ────────────────────────────────────────────────────
   function updateLegend(layer, mx) {
     const scaleEl = document.getElementById('richnessScale');
     const maxLab  = document.getElementById('richnessMax');
@@ -2256,13 +2349,13 @@ async function buildRichnessMap() {
       bar.style.cssText = `width:${120/steps}px;background:${zoneColor(n, mx, layer)}`;
       scaleEl.appendChild(bar);
     }
-    if (maxLab) maxLab.textContent = mx;
+    if (maxLab) maxLab.textContent = layer === 'obs' ? fmtN(mx, 'obs') : mx;
     if (legendEl) legendEl.style.display = 'block';
   }
 
   drawPolygons('all');
 
-  // ── Layer toggle buttons ─────────────────────────────────────
+  // ── Layer toggle buttons ──────────────────────────────────────
   document.querySelectorAll('.rmap-lbtn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.rmap-lbtn').forEach(b => b.classList.remove('active'));
@@ -2271,10 +2364,10 @@ async function buildRichnessMap() {
     });
   });
 
-  // ── Meta label ───────────────────────────────────────────────
+  // ── Meta label ────────────────────────────────────────────────
   const totalGuide = new Set(ZONES.flatMap(z => [...zoneData[z.id].all])).size;
   if (metaEl) metaEl.textContent =
-    `${totalObs.toLocaleString()} obs · ${totalGuide} especies de la guía`;
+    `${totalObs.toLocaleString()} obs · ${totalGuide} spp de la guía`;
 }
 </script>
 </body>
