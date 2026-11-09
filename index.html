@@ -30,20 +30,27 @@ html, body {
   overflow: hidden;
 }
 
-/* Photo background — place /assets/hero-home.jpg for full effect */
+/* Video / photo background */
 .hero-bg {
   position: absolute;
   inset: 0;
-  background-image: url('/assets/hero-home.jpg');
-  background-size: cover;
-  background-position: center 40%;
-  /* Gradient fallback when no photo is set */
   background-color: #031526;
-  transform: scale(1.04);
-  transition: transform 12s ease-out;
-  will-change: transform;
 }
-.hero-bg.loaded { transform: scale(1); }
+.hero-bg-video {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+/* Photo fallback (shown until video plays) */
+.hero-bg-img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+}
 
 /* Dark overlay — deepens towards bottom */
 .hero-overlay {
@@ -219,8 +226,14 @@ html, body {
 
 <div class="hero">
 
-  <!-- Background photo + overlays -->
-  <div class="hero-bg" id="heroBg"></div>
+  <!-- Background video + photo fallback + overlays -->
+  <div class="hero-bg">
+    <img class="hero-bg-img" src="/assets/hero-home.jpg" alt="" aria-hidden="true">
+    <video class="hero-bg-video" autoplay muted loop playsinline preload="auto"
+           aria-hidden="true" poster="/assets/hero-home.jpg">
+      <source src="/assets/hero-home.mp4" type="video/mp4">
+    </video>
+  </div>
   <div class="hero-overlay"></div>
   <div class="hero-vign"></div>
 
@@ -264,8 +277,12 @@ html, body {
 </div>
 
 <script>
-/* ── Background parallax trigger ───────────────────────── */
-document.getElementById('heroBg').classList.add('loaded');
+/* ── Video: hide static img once video plays ────────────── */
+const vid = document.querySelector('.hero-bg-video');
+if (vid) vid.addEventListener('playing', () => {
+  const img = document.querySelector('.hero-bg-img');
+  if (img) img.style.opacity = '0';
+}, { once: true });
 
 /* ── Particles — floating bubbles ──────────────────────── */
 (function() {
