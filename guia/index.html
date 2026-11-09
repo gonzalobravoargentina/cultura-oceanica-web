@@ -839,23 +839,25 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
     <div style="padding:22px 28px 0;display:flex;align-items:flex-start;justify-content:space-between">
       <div>
         <p style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px">culturaoceanica.org</p>
-        <h2 style="font-size:1.3rem;font-weight:800;color:#eef9ff">Sobre Cultura Oceánica</h2>
+        <h2 style="font-size:1.3rem;font-weight:800;color:#eef9ff">Guía de Especies Submarinas</h2>
       </div>
       <button id="aboutClose" style="background:var(--s2);border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:50%;font-size:.9rem;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-left:16px">✕</button>
     </div>
     <!-- body -->
     <div style="padding:20px 28px 32px;font-size:.87rem;color:var(--text2);line-height:1.8">
 
-      <p>Cultura Oceánica es una plataforma de ciencia y educación marina desarrollada en Argentina. Reúne herramientas interactivas para explorar, comunicar y proteger la biodiversidad de los fondos marinos del Mar Argentino, combinando investigación científica, datos abiertos y diseño accesible.</p>
+      <p>Fichas interactivas de algas, peces e invertebrados documentados en fondos rocosos del Mar Argentino mediante buceo científico. Cada ficha incluye fotos de campo, descripción, distribución y datos en tiempo real desde bases de datos abiertas.</p>
 
-      <h3 style="color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;margin:24px 0 8px">Herramientas</h3>
+      <h3 style="color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;margin:24px 0 8px">Fuentes de datos</h3>
       <ul style="padding-left:18px;margin:10px 0">
-        <li style="margin-bottom:6px"><strong style="color:var(--text)">Guía de Especies Submarinas</strong> — fichas interactivas de algas, peces e invertebrados documentados mediante buceo científico, con datos en tiempo real desde iNaturalist, Wikipedia, WoRMS, FishBase y AlgaeBase.</li>
-        <li style="margin-bottom:6px"><strong style="color:var(--text)">Visor de Rodolitos</strong> — explorador de comunidades de rodolitos (algas calcáreas coralinas) con análisis de fotocuadrantes y monitoreo de largo plazo.</li>
+        <li style="margin-bottom:6px"><strong style="color:var(--text)">iNaturalist</strong> — fotografías, observaciones georreferenciadas y nombres.</li>
+        <li style="margin-bottom:6px"><strong style="color:var(--text)">Wikipedia</strong> — descripciones ecológicas en español.</li>
+        <li style="margin-bottom:6px"><strong style="color:var(--text)">WoRMS</strong> — clasificación taxonómica actualizada.</li>
+        <li style="margin-bottom:6px"><strong style="color:var(--text)">FishBase / AlgaeBase</strong> — datos específicos de peces y algas.</li>
       </ul>
 
       <h3 style="color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;margin:24px 0 8px">Contexto</h3>
-      <p>Desarrollada en el marco de la tesis doctoral de <strong style="color:var(--text)">Gonzalo Bravo</strong> (IBIOMAR–CONICET / UNPSJB) sobre comunidades submareales de la Patagonia argentina, con el apoyo de instituciones y colaboradores de campo.</p>
+      <p>Desarrollada en el marco de la tesis doctoral de <strong style="color:var(--text)">Gonzalo Bravo</strong> (IBIOMAR–CONICET / UNPSJB) sobre comunidades submareales de la Patagonia argentina.</p>
 
       <h3 style="color:var(--accent);font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;margin:24px 0 8px">Instituciones</h3>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
@@ -1130,6 +1132,13 @@ async function loadGuide() {
         return t;
       })
       .sort((a,b) => sci(a).localeCompare(sci(b)));
+    // Pre-populate common names from the guide's own display_name
+    // (this is the title shown in iNat guide, e.g. "Estrella violeta")
+    taxa.forEach(t => {
+      if (t.display_name && t.display_name !== t.name) {
+        cnames[t.taxon_id] = t.display_name;
+      }
+    });
     buildSubChips('all');
     renderGrid();
     fetchCnames();
@@ -1174,7 +1183,8 @@ async function fetchCnames() {
       const d = await r.json();
       let upd = false;
       (d.results||[]).forEach(tx => {
-        if (tx.preferred_common_name) { cnames[tx.id] = tx.preferred_common_name; upd=true; }
+        // Only use iNat's preferred_common_name if no guide display_name was set
+        if (tx.preferred_common_name && !cnames[tx.id]) { cnames[tx.id] = tx.preferred_common_name; upd=true; }
         if (tx.ancestry) { ancestryMap[tx.id] = tx.ancestry + '/' + tx.id; upd=true; }
       });
       if (upd) renderGrid();
