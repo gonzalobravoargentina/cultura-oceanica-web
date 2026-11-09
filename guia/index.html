@@ -708,6 +708,18 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
   box-shadow: 0 8px 32px rgba(0,0,0,.7) !important;
 }
 .rmap-popup .leaflet-popup-tip { background: rgba(4,10,22,0.95) !important; }
+/* Help "?" button */
+.rmap-help-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(0,201,212,0.12); border: 1px solid rgba(0,201,212,0.3);
+  color: var(--accent); font-family: var(--co-font-display);
+  font-size: .68rem; font-weight: 700; cursor: pointer;
+  vertical-align: middle; margin-left: 8px;
+  transition: background .18s, border-color .18s;
+  line-height: 1; padding: 0;
+}
+.rmap-help-btn:hover { background: rgba(0,201,212,0.25); border-color: var(--accent); }
 /* Number labels on polygons */
 .rmap-num {
   font-family: var(--co-font-display, sans-serif);
@@ -920,7 +932,7 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
 <!-- ════════════════════ RICHNESS MAP ════════════════════ -->
 <section class="richness-section">
   <div class="richness-heading">
-    <span class="richness-title">Distribución costera</span>
+    <span class="richness-title">Distribución costera <button class="rmap-help-btn" id="rmapHelpBtn" title="¿Cómo se calculan estos números?">?</button></span>
     <div class="rmap-layer-btns" id="rmapLayerBtns">
       <button class="rmap-lbtn active" data-layer="all">Todos</button>
       <button class="rmap-lbtn" data-layer="Algas">Algas</button>
@@ -934,7 +946,7 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
     <div id="richnessMap"></div>
     <div class="richness-loading" id="richnessLoading">Cargando observaciones…</div>
     <div class="richness-legend" id="richnessLegend" style="display:none">
-      <div class="richness-legend-title">Riqueza de especies</div>
+      <div class="richness-legend-title" id="richnessLegendTitle">Riqueza de especies</div>
       <div class="richness-legend-scale" id="richnessScale"></div>
       <div class="richness-legend-labels">
         <span>1</span><span id="richnessMax">—</span>
@@ -967,6 +979,38 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
     <img class="sdg14-img" src="/assets/sdg14.png" alt="ODS 14 — Vida Submarina">
   </div>
 </footer>
+
+<!-- ════════════════════ RMAP METHODOLOGY MODAL ════════════════════ -->
+<div id="rmapMethodModal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(4,10,22,.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,.7);animation:sfadein .2s ease">
+    <div style="padding:24px 28px 0;display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <p style="font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px">Metodología</p>
+        <h2 style="font-family:var(--co-font-display);font-size:1.3rem;font-weight:900;color:var(--text);letter-spacing:1px">¿Cómo se calculan los números?</h2>
+      </div>
+      <button onclick="document.getElementById('rmapMethodModal').style.display='none'" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:4px;line-height:1;margin-top:2px">✕</button>
+    </div>
+    <div style="padding:20px 28px 28px;font-size:.84rem;color:var(--text-dim);line-height:1.7">
+
+      <div style="margin-bottom:20px;padding:14px 16px;background:rgba(0,201,212,.06);border:1px solid rgba(0,201,212,.15);border-radius:8px">
+        <div style="font-family:var(--co-font-display);font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px">Riqueza de especies</div>
+        <p>Muestra <b style="color:var(--text)">cuántas especies de esta guía fueron registradas en cada zona</b> según iNaturalist. Para cada polígono se consulta el endpoint <code style="font-size:.78rem;background:rgba(255,255,255,.07);padding:1px 5px;border-radius:3px">/observations/species_counts</code> con la bounding box de la zona, filtrando solo los taxones presentes en la guía. El resultado es el conteo exacto que tiene iNat en su base de datos — no un muestreo.</p>
+      </div>
+
+      <div style="margin-bottom:20px;padding:14px 16px;background:rgba(150,80,220,.06);border:1px solid rgba(150,80,220,.18);border-radius:8px">
+        <div style="font-family:var(--co-font-display);font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:#b07ee8;margin-bottom:6px">Observaciones totales</div>
+        <p>Muestra el <b style="color:var(--text)">esfuerzo de muestreo de la comunidad iNat</b> en cada zona: la cantidad total de registros de <i>cualquier</i> taxón, no solo los de la guía. Se obtiene con <code style="font-size:.78rem;background:rgba(255,255,255,.07);padding:1px 5px;border-radius:3px">/observations?per_page=0</code>, que devuelve solo el total sin descargar ningún registro. Zonas con muchas obs reflejan mayor actividad de naturalistas.</p>
+      </div>
+
+      <div style="padding:14px 16px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px">
+        <div style="font-family:var(--co-font-display);font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Actualización dinámica</div>
+        <p>Los datos se recalculan cada vez que se abre la guía. Si se agregan nuevas especies a la guía de iNaturalist, aparecerán automáticamente en el mapa la próxima vez que se cargue la página.</p>
+        <p style="margin-top:8px;font-size:.78rem;color:var(--muted)">Las zonas corresponden a polígonos definidos manualmente y la query usa sus bounding boxes (rectángulos envolventes), por lo que pueden incluir observaciones en aguas limítrofes.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <!-- ════════════════════ ABOUT MODAL ════════════════════ -->
 <div id="aboutOverlay" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(4,10,22,.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px">
@@ -2210,7 +2254,7 @@ async function buildRichnessMap() {
     Algas:         t => `rgba(${Math.round(t*20)},${Math.round(100+t*140)},${Math.round(60+t*60)},${0.28+t*0.52})`,
     Peces:         t => `rgba(${Math.round(t*20)},${Math.round(80+t*120)},${Math.round(140+t*80)},${0.28+t*0.52})`,
     Invertebrados: t => `rgba(${Math.round(100+t*125)},${Math.round(60+t*60)},${Math.round(t*60)},${0.28+t*0.52})`,
-    obs:           t => `rgba(${Math.round(60+t*195)},${Math.round(30+t*120)},${Math.round(t*40)},${0.28+t*0.52})`,
+    obs:           t => `rgba(${Math.round(80+t*100)},${Math.round(t*60)},${Math.round(140+t*100)},${0.28+t*0.55})`,
   };
 
   function zoneColor(n, maxN, layer) {
@@ -2341,10 +2385,24 @@ async function buildRichnessMap() {
       scaleEl.appendChild(bar);
     }
     if (maxLab) maxLab.textContent = layer === 'obs' ? fmtN(mx, 'obs') : mx;
+    const titleEl = document.getElementById('richnessLegendTitle');
+    if (titleEl) titleEl.textContent = layer === 'obs' ? 'Observaciones' : 'Riqueza de especies';
     if (legendEl) legendEl.style.display = 'block';
   }
 
   drawPolygons('all');
+
+  // ── Help button ───────────────────────────────────────────────
+  const helpBtn = document.getElementById('rmapHelpBtn');
+  const helpModal = document.getElementById('rmapMethodModal');
+  if (helpBtn && helpModal) {
+    helpBtn.addEventListener('click', () => {
+      helpModal.style.display = 'flex';
+    });
+    helpModal.addEventListener('click', e => {
+      if (e.target === helpModal) helpModal.style.display = 'none';
+    });
+  }
 
   // ── Layer toggle buttons ──────────────────────────────────────
   document.querySelectorAll('.rmap-lbtn').forEach(btn => {
