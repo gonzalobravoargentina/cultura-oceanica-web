@@ -30,26 +30,14 @@ html, body {
   overflow: hidden;
 }
 
-/* Video / photo background */
+/* Photo background */
 .hero-bg {
   position: absolute;
   inset: 0;
+  background-image: url('/assets/hero-home.jpg');
+  background-size: cover;
+  background-position: center 40%;
   background-color: #031526;
-}
-.hero-bg-video {
-  position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-/* Photo fallback (shown until video plays) */
-.hero-bg-img {
-  position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
-  object-position: center 40%;
 }
 
 /* Dark overlay — deepens towards bottom */
@@ -226,14 +214,8 @@ html, body {
 
 <div class="hero">
 
-  <!-- Background video + photo fallback + overlays -->
-  <div class="hero-bg">
-    <img class="hero-bg-img" src="/assets/hero-home.jpg" alt="" aria-hidden="true">
-    <video class="hero-bg-video" autoplay muted loop playsinline preload="auto"
-           aria-hidden="true" poster="/assets/hero-home.jpg">
-      <source src="/assets/hero-home.mp4" type="video/mp4">
-    </video>
-  </div>
+  <!-- Background photo + overlays -->
+  <div class="hero-bg"></div>
   <div class="hero-overlay"></div>
   <div class="hero-vign"></div>
 
@@ -277,12 +259,6 @@ html, body {
 </div>
 
 <script>
-/* ── Video: hide static img once video plays ────────────── */
-const vid = document.querySelector('.hero-bg-video');
-if (vid) vid.addEventListener('playing', () => {
-  const img = document.querySelector('.hero-bg-img');
-  if (img) img.style.opacity = '0';
-}, { once: true });
 
 /* ── Particles — floating bubbles ──────────────────────── */
 (function() {
