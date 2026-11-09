@@ -560,10 +560,14 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
 }
 .nofiche small { font-style: normal; font-size: .75rem; color: var(--muted2); }
 
-/* Wikipedia */
-.wikitext { font-size: .87rem; color: var(--text2); line-height: 1.88; overflow: hidden; }
-.wikitext img { float: right; width: 110px; height: 110px; object-fit: cover; border-radius: 8px; margin: 0 0 12px 16px; flex-shrink: 0; }
-.wikilink { display: inline-block; margin-top: 12px; font-size: .8rem; color: var(--accent); }
+/* Taxonomy tab */
+.taxo-table { border-collapse: collapse; width: 100%; margin-bottom: 16px; }
+.taxo-table td { padding: 7px 10px; font-size: .82rem; border-bottom: 1px solid rgba(255,255,255,.05); }
+.taxo-rank { width: 90px; color: var(--muted2); font-family: var(--co-font-display); letter-spacing: .5px; text-transform: uppercase; font-size: .68rem; }
+.taxo-name { color: var(--text2); font-style: italic; }
+.taxo-sp .taxo-name, .taxo-name.taxo-sp { color: var(--accent); font-weight: 600; }
+.taxo-row-sp td { border-bottom: none; }
+.wikilink { display: inline-block; margin-top: 4px; font-size: .8rem; color: var(--accent); }
 .wikilink:hover { text-decoration: underline; }
 
 /* Map */
@@ -1000,7 +1004,7 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
     <!-- Tabs -->
     <div class="sptabs">
       <button class="tabBtn on" data-t="desc">Descripción</button>
-      <button class="tabBtn"    data-t="wiki">Wikipedia</button>
+      <button class="tabBtn"    data-t="taxo">Taxonomía</button>
       <button class="tabBtn"    data-t="map">Mapa</button>
       <button class="tabBtn"    data-t="similar">Especies emparentadas</button>
     </div>
@@ -1010,7 +1014,7 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
       <div class="tc on" id="t-desc">
         <div class="aloading" id="descEl">Cargando…</div>
       </div>
-      <div class="tc"    id="t-wiki"><p class="aloading" id="wikiEl">Cargando…</p></div>
+      <div class="tc"    id="t-taxo"><div id="taxoEl"><p class="aloading">Cargando…</p></div></div>
       <div class="tc"    id="t-map">
         <div id="spMap"></div>
         <p class="mapnote" id="mapNote"></p>
@@ -1044,7 +1048,7 @@ const INV = new Set(['nudibranquios','gasterópodos','bivalvos','equinodermos','
   'anélidos','cefalópodos','hidrozoos','anemonas','corales','octocorales','medusas','placoforos',
   'sipuncúlidos','nemertinos','turbelarios','polplacoforos','quitones',
   'picnogónidos','ofiuras','holoturias','crinoideos','asteroideos','equinoideos',
-  'ctenophora','ctenóforos','ctenoforos']);
+  'ctenophora','ctenóforos','ctenoforos','braquiópodos']);
 const ALG = new Set(['algas','macroalgas','alga','clorofitas','rodofitas','feofitas']);
 const PEZ = new Set(['peces','pez','elasmobranquios','condricties','actinopterigios']);
 
@@ -1118,6 +1122,7 @@ const SCOL = {
   'cangrejos':'#d47a20','camarones':'#e8a060','cirripedios':'#b09040',
   'ctenophora':'#60c8b0','ctenóforos':'#60c8b0','ctenoforos':'#60c8b0',
   'anélidos':'#30c0a0','cefalópodos':'#6070c8','placoforos':'#b09060',
+  'braquiópodos':'#9b7a5a',
 };
 // Helper: color lookup case-insensitive
 const scol = tag => tag ? (SCOL[tag.toLowerCase()] || 'var(--accent)') : 'var(--accent)';
@@ -1404,7 +1409,13 @@ function taxoSort(a, b) {
     const pad = s => s.split('/').map(n => n.padStart(10,'0')).join('/');
     return pad(ka).localeCompare(pad(kb));
   }
-  return ka ? -1 : kb ? 1 : sci(a).localeCompare(sci(b));
+  // Fallback: use guide position (author set it in taxonomic order)
+  if (!ka && !kb) {
+    const pa = (a.position > 0) ? a.position : 99999;
+    const pb = (b.position > 0) ? b.position : 99999;
+    return pa - pb;
+  }
+  return ka ? -1 : 1;
 }
 
 function renderGrid() {
@@ -1559,7 +1570,7 @@ function openSpecies(t) {
   document.querySelectorAll('.tabBtn').forEach(b=>b.classList.toggle('on',b.dataset.t==='desc'));
   document.querySelectorAll('.tc').forEach(c=>c.classList.toggle('on',c.id==='t-desc'));
   document.getElementById('descEl').innerHTML='<p class="aloading">Cargando descripción…</p>';
-  document.getElementById('wikiEl').innerHTML='<p class="aloading">Cargando Wikipedia…</p>';
+  document.getElementById('taxoEl').innerHTML='<p class="aloading">Cargando taxonomía…</p>';
   document.getElementById('mapNote').innerHTML='';
   document.getElementById('similarGrid').innerHTML='';
   if(leafMap){leafMap.remove();leafMap=null;}
@@ -1580,12 +1591,13 @@ function openSpecies(t) {
       document.getElementById(`t-${nb.dataset.t}`).classList.add('on');
       if(nb.dataset.t==='map'&&!mapInit){mapInit=true;initMap(t.taxon_id);}
       if(nb.dataset.t==='similar'&&!similarInit){similarInit=true;renderSimilar(t);}
+      if(nb.dataset.t==='taxo'){loadTaxonomy(t);}
     });
   });
 
   /* ── Load async data ── */
   loadDesc(t);
-  loadWiki(sn);
+  loadTaxonomy(t);
 }
 
 /* ────────────────────────────────────────────────
@@ -1783,29 +1795,42 @@ async function resolveWikispeciesUrl(sciName, genusEnc) {
 }
 
 /* ────────────────────────────────────────────────
-   LOAD WIKIPEDIA
+   TAXONOMY TAB — jerarquía taxonómica desde iNat
 ──────────────────────────────────────────────── */
-async function loadWiki(name) {
-  const el=document.getElementById('wikiEl'); if(!el) return;
+async function loadTaxonomy(t) {
+  const el = document.getElementById('taxoEl');
+  if (!el) return;
+  const sn = sci(t);
+  const wikiEnc  = encodeURIComponent(sn);
+  const wikiHref = `https://es.wikipedia.org/wiki/${wikiEnc}`;
+  const wikiBtn  = `<a class="wikilink" href="${wikiHref}" target="_blank" rel="noopener">Ver en Wikipedia →</a>`;
   try {
-    let r=await fetch(`https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
-    if(!r.ok) r=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
-    if(!r.ok) throw new Error();
-    const d=await r.json();
-    if(d.extract){
-      el.innerHTML=`
-        <div class="wikitext">
-          ${d.thumbnail?.source?`<img src="${d.thumbnail.source}" alt="">`:''}
-          <p>${d.extract}</p>
-        </div>
-        <a class="wikilink" href="${d.content_urls?.desktop?.page||`https://es.wikipedia.org/wiki/${encodeURIComponent(name)}`}" target="_blank">
-          Leer artículo completo en Wikipedia →
-        </a>`;
-    } else {
-      el.innerHTML=`<p class="aloading">Sin artículo en Wikipedia para <em>${name}</em>.</p>`;
+    const r = await fetch(`${V1_API}/taxa/${t.taxon_id}?all_names=false`);
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    const taxon = (d.results||[])[0];
+    if (!taxon) throw new Error();
+    // Build ancestry chain: ancestors + self
+    const RANKS = ['kingdom','phylum','subphylum','class','order','family','genus','species'];
+    const RANK_ES = { kingdom:'Reino', phylum:'Filo', subphylum:'Subfilo', class:'Clase',
+                      order:'Orden', family:'Familia', genus:'Género', species:'Especie' };
+    const chain = [...(taxon.ancestors||[]), taxon];
+    const rows = RANKS.map(rank => {
+      const a = chain.find(x => x.rank === rank);
+      if (!a) return '';
+      const isLast = rank === 'species' || rank === taxon.rank;
+      return `<tr class="${isLast?'taxo-row-sp':'taxo-row'}">
+        <td class="taxo-rank">${RANK_ES[rank]||rank}</td>
+        <td class="taxo-name${isLast?' taxo-sp':''}">${a.name}</td>
+      </tr>`;
+    }).join('');
+    // Also capture stored ancestry for future sort
+    if (taxon.ancestry && !ancestryMap[t.taxon_id]) {
+      ancestryMap[t.taxon_id] = taxon.ancestry + '/' + t.taxon_id;
     }
+    el.innerHTML = `<table class="taxo-table">${rows}</table>${wikiBtn}`;
   } catch {
-    el.innerHTML=`<p class="aloading">Sin artículo en Wikipedia para <em>${name}</em>.</p>`;
+    el.innerHTML = `<p class="aloading" style="margin-bottom:16px">No se pudo cargar la taxonomía.</p>${wikiBtn}`;
   }
 }
 
@@ -1934,7 +1959,7 @@ async function buildRichnessMap() {
     scrollWheelZoom: false,
   });
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap © CARTO',
     subdomains: 'abcd', maxZoom: 19
   }).addTo(rmap);
@@ -1960,7 +1985,7 @@ async function buildRichnessMap() {
     try {
       const r = await fetch(
         `${V1_API}/observations?taxon_id=${chunk}&place_id=7036` +
-        `&per_page=200&geo=true&quality_grade=research&fields=taxon.id,location`
+        `&per_page=200&geo=true&quality_grade=research`
       );
       const d = await r.json();
       (d.results || []).forEach(obs => {
