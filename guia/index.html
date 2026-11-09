@@ -646,6 +646,10 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
 #richnessMap {
   width: 100%; height: 100%;
 }
+/* OSM tiles dark filter — inverts light map to dark style */
+.rmap-osm-tile {
+  filter: invert(100%) hue-rotate(180deg) brightness(78%) contrast(88%) saturate(60%);
+}
 .richness-legend {
   position: absolute;
   bottom: 20px; left: 20px;
@@ -1559,7 +1563,6 @@ function openSpecies(t) {
   }
   document.getElementById('spLinks').innerHTML = `
     <a class="extbtn eb-inat"  href="${INAT_TAXON}${t.taxon_id}" target="_blank">🔭 iNaturalist ↗</a>
-    <a class="extbtn eb-wiki"  href="https://es.wikipedia.org/wiki/${enc}" target="_blank">📖 Wikipedia ↗</a>
     ${dbLink}
   `;
 
@@ -1800,10 +1803,22 @@ async function resolveWikispeciesUrl(sciName, genusEnc) {
 async function loadTaxonomy(t) {
   const el = document.getElementById('taxoEl');
   if (!el) return;
-  const sn = sci(t);
-  const wikiEnc  = encodeURIComponent(sn);
-  const wikiHref = `https://es.wikipedia.org/wiki/${wikiEnc}`;
-  const wikiBtn  = `<a class="wikilink" href="${wikiHref}" target="_blank" rel="noopener">Ver en Wikipedia →</a>`;
+  const sn  = sci(t);
+  const enc = encodeURIComponent(sn);
+  const mg  = mainG(t);
+  let dbLabel, dbHref;
+  if (mg === 'Peces') {
+    const parts = sn.split(' ');
+    dbLabel = 'FishBase';
+    dbHref  = `https://www.fishbase.se/summary/${parts[0]}-${parts[1]||''}.html`;
+  } else if (mg === 'Algas') {
+    dbLabel = 'AlgaeBase';
+    dbHref  = `https://www.algaebase.org/search/species/?name=${enc}`;
+  } else {
+    dbLabel = 'WoRMS';
+    dbHref  = `https://www.marinespecies.org/aphia.php?p=taxlist&tName=${enc}`;
+  }
+  const wikiBtn = `<a class="wikilink" href="${dbHref}" target="_blank" rel="noopener">Ver en ${dbLabel} →</a>`;
   try {
     const r = await fetch(`${V1_API}/taxa/${t.taxon_id}?all_names=false`);
     if (!r.ok) throw new Error();
@@ -1959,9 +1974,10 @@ async function buildRichnessMap() {
     scrollWheelZoom: false,
   });
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap © CARTO',
-    subdomains: 'abcd', maxZoom: 19
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+    className: 'rmap-osm-tile'
   }).addTo(rmap);
 
   // Fetch observations in batches of 20 taxa
