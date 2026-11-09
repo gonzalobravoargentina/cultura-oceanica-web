@@ -72,27 +72,8 @@ html, body {
   pointer-events: none;
 }
 
-/* ── NAV — top bar ────────────────────────────────────────── */
-.site-nav {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  padding: 28px var(--co-pad-x);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 10;
-}
-.nav-logo {
-  font-family: var(--co-font-display);
-  font-size: .78rem;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--co-teal);
-  text-decoration: none;
-  transition: opacity .2s;
-}
-.nav-logo:hover { opacity: .75; }
+/* sitenav override for home — position absolute (not fixed) */
+.sitenav { position: absolute; background: transparent; border-bottom: none; }
 
 /* ── WORDMARK — centered ──────────────────────────────────── */
 .wordmark {
@@ -136,16 +117,16 @@ html, body {
   color: rgba(140, 200, 220, 0.70);
 }
 
-/* ── PORTAL CARDS — bottom navigation ────────────────────── */
+/* ── PORTAL CARDS — bottom right ─────────────────────────── */
 .portals {
   position: absolute;
-  bottom: 44px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 56px;
+  right: var(--co-pad-x);
   z-index: 10;
   display: flex;
-  gap: 14px;
-  width: min(680px, 90vw);
+  flex-direction: column;
+  gap: 10px;
+  width: 280px;
 }
 .portal {
   flex: 1;
@@ -212,30 +193,15 @@ html, body {
 }
 .portal:hover .portal-arrow::after { width: 32px; }
 
-/* ── CREDIT — bottom right ────────────────────────────────── */
-.credit {
-  position: absolute;
-  bottom: 20px;
-  right: var(--co-pad-x);
-  z-index: 10;
-  font-size: .62rem;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: rgba(90, 140, 165, 0.45);
-}
-
 /* ── RESPONSIVE ───────────────────────────────────────────── */
 @media (max-width: 600px) {
-  .site-nav { padding: 20px var(--co-pad-x-mob); }
   .portals {
-    bottom: 28px;
-    flex-direction: column;
-    gap: 10px;
+    bottom: 24px;
+    right: 20px;
     width: calc(100vw - 40px);
   }
-  .portal { padding: 14px 18px 16px; }
+  .portal { padding: 12px 16px 14px; }
   .portal-desc { display: none; }
-  .credit { display: none; }
 }
 
 /* ── FADE IN ──────────────────────────────────────────────── */
@@ -245,8 +211,7 @@ html, body {
 }
 .wordmark  { animation: fadein .9s ease both; animation-delay: .15s; }
 .portals   { animation: fadein .9s ease both; animation-delay: .40s; }
-.site-nav  { animation: fadein .6s ease both; }
-.credit    { animation: fadein .6s ease both; animation-delay: .6s; }
+.sitenav   { animation: fadein .6s ease both; }
 
 </style>
 </head>
@@ -262,9 +227,13 @@ html, body {
   <!-- Particle canvas -->
   <canvas id="particles"></canvas>
 
-  <!-- Top nav -->
-  <nav class="site-nav">
-    <a href="/" class="nav-logo">culturaoceanica.org</a>
+  <!-- Top nav — same format as guide/rodolitos -->
+  <nav class="sitenav">
+    <a class="sitenav-brand" href="/">CULTURA <span>OCEÁNICA</span></a>
+    <div class="sitenav-links">
+      <a href="/guia/">Guía</a>
+      <a href="/rodolitos/">Rodolitos</a>
+    </div>
   </nav>
 
   <!-- Centered wordmark -->
@@ -272,7 +241,7 @@ html, body {
     <div class="wordmark-top">Cultura</div>
     <div class="wordmark-bottom">Oceánica</div>
     <div class="wordmark-rule"></div>
-    <div class="wordmark-sub">Mar Argentino &nbsp;·&nbsp; Ciencia y educación marina</div>
+    <div class="wordmark-sub">Mar Argentino</div>
   </div>
 
   <!-- Portal navigation cards -->
@@ -286,13 +255,11 @@ html, body {
     <a class="portal" href="/rodolitos/">
       <div class="portal-eyebrow">Visualizar</div>
       <div class="portal-name">Visor de Rodolitos</div>
-      <div class="portal-desc">Fotocuadrantes y monitoreo de largo plazo · protocolos MBON</div>
+      <div class="portal-desc">Explorador 3D de morfología de rodolitos del Mar Argentino</div>
       <div class="portal-arrow">Ingresar</div>
     </a>
   </div>
 
-  <!-- Credit -->
-  <div class="credit">IBIOMAR · CONICET / UNPSJB</div>
 
 </div>
 
