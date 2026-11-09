@@ -488,6 +488,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .eb-wiki:hover  { border-color: var(--accent); color: var(--accent); }
 .eb-worms { background: transparent; border-color: var(--border); color: var(--text2); }
 .eb-worms:hover { border-color: #26a69a; color: #26a69a; }
+.eb-nudi  { background: transparent; border-color: #9b59b640; color: #c084dc; }
+.eb-nudi:hover { border-color: #9b59b6; color: #d8a0f0; }
 
 hr.spdiv { border: none; border-top: 1px solid var(--border); }
 
@@ -1561,9 +1563,13 @@ function openSpecies(t) {
   } else {
     dbLink = `<a class="extbtn eb-worms" href="https://www.marinespecies.org/aphia.php?p=taxlist&tName=${enc}&marine_only=true" target="_blank">🐚 WoRMS ↗</a>`;
   }
+  const nudiLink = gtags(t).map(x=>x.toLowerCase()).includes('nudibranquios')
+    ? `<a class="extbtn eb-nudi" href="https://www.nudibranquiosargentina.com.ar/inicio" target="_blank" rel="noopener">🐌 Nudibranquios Argentina ↗</a>`
+    : '';
   document.getElementById('spLinks').innerHTML = `
     <a class="extbtn eb-inat"  href="${INAT_TAXON}${t.taxon_id}" target="_blank">🔭 iNaturalist ↗</a>
     ${dbLink}
+    ${nudiLink}
   `;
 
   /* ── Co-occurrence section ── */

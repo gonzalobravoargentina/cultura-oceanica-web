@@ -188,6 +188,22 @@ html, body {
 }
 .portal:hover .portal-arrow::after { width: 32px; }
 
+/* ── BY OCEANAR ───────────────────────────────────────────── */
+.by-oceanar {
+  position: absolute;
+  bottom: 18px;
+  right: var(--co-pad-x);
+  z-index: 10;
+  font-family: var(--co-font-display);
+  font-size: .60rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.25);
+  text-decoration: none;
+  transition: color .2s;
+}
+.by-oceanar:hover { color: rgba(255,255,255,.65); }
+
 /* ── RESPONSIVE ───────────────────────────────────────────── */
 @media (max-width: 600px) {
   .portals {
@@ -238,6 +254,9 @@ html, body {
     <div class="wordmark-rule"></div>
     <div class="wordmark-sub">Mar Argentino</div>
   </div>
+
+  <!-- By Oceanar credit -->
+  <a class="by-oceanar" href="https://www.oceanar.org/" target="_blank" rel="noopener">by Oceanar</a>
 
   <!-- Portal navigation cards -->
   <div class="portals">
