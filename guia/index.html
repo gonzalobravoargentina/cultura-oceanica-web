@@ -1131,7 +1131,7 @@ async function loadGuide() {
         }
         return t;
       })
-      .sort((a,b) => sci(a).localeCompare(sci(b)));
+      .sort((a,b) => (a.position||999) - (b.position||999)); // iNat guide taxonomic order
     // Pre-populate common names from the guide's own display_name
     // (this is the title shown in iNat guide, e.g. "Estrella violeta")
     taxa.forEach(t => {
