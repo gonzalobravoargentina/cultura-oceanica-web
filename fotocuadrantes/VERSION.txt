@@ -1,0 +1,3 @@
+Quadrat Cropper v1.14.0
+Origen: gonzalobravoargentina/quadrat-cropper-js @ culturaoceanica (fdc44cb)
+Actualizado: 2026-11-10
