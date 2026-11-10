@@ -977,6 +977,10 @@ hr.spdiv { border: none; border-top: 1px solid var(--border); }
       <span class="fstat-num" id="ftInverts">—</span>
       <span class="fstat-label">Invertebrados</span>
     </div>
+    <div class="fstat">
+      <span class="fstat-num" id="ftObs">—</span>
+      <span class="fstat-label">Observaciones</span>
+    </div>
   </div>
   <div class="footer-sdg">
     <img class="sdg14-img" src="/assets/sdg14.png" alt="ODS 14 — Vida Submarina">
@@ -2420,10 +2424,14 @@ async function buildRichnessMap() {
     });
   });
 
-  // ── Meta label ────────────────────────────────────────────────
+  // ── Meta label + footer obs counter ──────────────────────────
   const totalGuide = new Set(ZONES.flatMap(z => [...zoneData[z.id].all])).size;
   if (metaEl) metaEl.textContent =
     `${totalObs.toLocaleString()} obs · ${totalGuide} spp de la guía`;
+  const ftObs = document.getElementById('ftObs');
+  if (ftObs) ftObs.textContent = totalObs >= 1000
+    ? (totalObs / 1000).toFixed(1) + 'k'
+    : totalObs.toLocaleString();
 }
 </script>
 </body>
