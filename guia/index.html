@@ -1319,9 +1319,18 @@ function subGSub3(t) {
 ──────────────────────────────────────────────── */
 async function loadGuide() {
   try {
-    const r = await fetch(`${OLD_API}/guide_taxa.json?guide_id=${GUIDE_ID}&per_page=200`);
-    const d = await r.json();
-    taxa = (d.guide_taxa||[])
+    // Paginate through all guide taxa (iNat guide API caps per_page at 200)
+    const PER = 200;
+    let allTaxa = [], page = 1;
+    while (true) {
+      const r = await fetch(`${OLD_API}/guide_taxa.json?guide_id=${GUIDE_ID}&per_page=${PER}&page=${page}`);
+      const d = await r.json();
+      const batch = d.guide_taxa || [];
+      allTaxa = allTaxa.concat(batch);
+      if (batch.length < PER) break; // last page
+      page++;
+    }
+    taxa = allTaxa
       .map(t => {
         // Sort guide_photos by position so [0] is always the primary photo
         if (t.guide_photos?.length > 1) {
