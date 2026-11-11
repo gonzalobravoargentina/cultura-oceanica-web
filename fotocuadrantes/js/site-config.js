@@ -1,14 +1,1 @@
-/**
- * site-config.js — per-deployment settings, empty in this repository.
- *
- * A site that hosts its own copy of the tool can overwrite this file at
- * deploy time (e.g. from a CI variable) to give every visitor defaults that
- * should not live in the shared code. A value a user sets in ⚙ always wins.
- *
- *   arcgisKey: ArcGIS Location Platform API key (Basemaps privilege only,
- *              restricted to the site's domain) → Esri World Imagery in the
- *              Map tab without each user pasting a key.
- */
-window.QD_SITE_CONFIG = {
-  arcgisKey: ''
-};
+window.QD_SITE_CONFIG = {"arcgisKey": "AAPTaspY80P5skxcMxG4ZhEKjFg..ZcYeTb_r1gyZ4Mldx6j79lWJqY0WfrirtUN0OinzqwHHavXjivbSvS3AVxm2zlmqpP1n6OQz0zf7yrLx9D9ieDTNbwfrGtZaUltV7Wp93wD5mYMM2sE2-BIgnUTx2oGvggr57-2-Va86VlolHOfXXrtoXdokjQvraj5VkS5-fe7lmnlQeHT2OVxq4PPB3LeunfYX-hl-sTJOY6cePivIkqQZiWwNkPzBLhHdpZ-AhMLkQFX4vjHRo0y26PlkAT1_eQBPIr6b"};
