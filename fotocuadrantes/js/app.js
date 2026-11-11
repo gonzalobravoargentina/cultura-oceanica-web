@@ -56,6 +56,7 @@
     });
     ui.settings.addEventListener('click', openSettings);
     ui.saveSettings.addEventListener('click', saveSettings);
+    el('doneClose').addEventListener('click', hideDone);
     el('squareMode').addEventListener('change', syncSquareMode);
     ui.exportBtn.addEventListener('click', doExport);
     ui.clear.addEventListener('click', clearAll);
@@ -176,7 +177,6 @@
 
   function addFiles(fileList) {
     var files = Array.from(fileList);
-    var load = 'Load ' + (++loadCount);
     // CSVs inside a picked/dropped folder are metadata (same as in a zip or a
     // Drive folder): read them before the photos are queued so they join
     var csvFiles = files.filter(function (f) { return /\.csv$/i.test(f.name); });
@@ -197,8 +197,9 @@
     if (!imgs.length) return;
     imgs.forEach(function (f) {
       var it = newItem(f.name, f, null);
-      // folder of a dropped / picked folder, else this load as one group
-      it.group = dirOf(f._relPath || f.webkitRelativePath) || load;
+      // folder of a dropped / picked folder; loose files get no group, so the
+      // Metadata tab shows one row per photo (metatab.js groupOf)
+      it.group = dirOf(f._relPath || f.webkitRelativePath) || '';
       state.items.push(it);
     });
     render();
@@ -308,6 +309,8 @@
   }
 
   function ingestFolderById(folderId) {
+    state.ingesting = (state.ingesting || 0) + 1;   // Drive still downloading
+    hideDone();
     setProgress(true, 'Listing Drive folder…');
     return QDDrive.ingestFolder(folderId, function (msg) {
       state.dlMsg = msg;
@@ -326,14 +329,17 @@
         return waitForRoom();
       }
     }).then(function (res) {
+      state.ingesting--;
       state.dlMsg = '';
       if (!state.busy) setProgress(false);
       renderStats();
+      announceDone();
       if (res.failed && res.failed.length) {
         alert(res.failed.length + ' file(s) could not be downloaded from Drive and were skipped:\n\n'
           + res.failed.slice(0, 15).join('\n') + (res.failed.length > 15 ? '\n…' : ''));
       }
     }).catch(function (e) {
+      state.ingesting--;
       setProgress(false);
       alert(String(e.message || e));
     });
@@ -471,6 +477,7 @@
   async function startQueue() {
     if (state.busy) return;
     state.busy = true;
+    hideDone();
     var workers = getPool();
     var done = 0, active = 0, t0 = Date.now();
     await new Promise(function (resolve) {
@@ -532,6 +539,43 @@
     state.busy = false;
     ui.exportBtn.disabled = false;
     if (reapplyPending) { reapplyPending = false; reapplySquare(); }
+    announceDone();
+  }
+
+  // ------------------------------------------------- "all loaded" notice
+  //
+  // The progress card disappears silently when a batch ends, which is easy
+  // to miss with a 3000-photo Drive folder. Once nothing is queued, nothing
+  // is processing and no Drive folder is still downloading, show a notice
+  // with the totals (stays until closed or until more photos are added) and
+  // mark the browser tab title if the tab is in the background.
+  var baseTitle = document.title;
+  function hideDone() {
+    var n = el('doneNote'); if (n) n.hidden = true;
+    document.title = baseTitle;
+  }
+  function announceDone() {
+    if (state.busy || state.ingesting > 0) return;
+    if (state.items.some(function (q) { return q.status === 'queued' || q.status === 'processing'; })) return;
+    if (!state.items.length) return;
+    var n = QDGrid.updateStats(state.items);
+    var parts = [];
+    if (n.auto) parts.push(n.auto + ' auto-accepted');
+    if (n.review) parts.push(n.review + ' to review');
+    if (n.manual) parts.push(n.manual + ' need manual corners');
+    if (n.failed) parts.push(n.failed + ' no frame found');
+    if (n.adjusted) parts.push(n.adjusted + ' adjusted by hand');
+    if (n.excluded) parts.push(n.excluded + ' excluded');
+    el('doneTitle').textContent = '✓ All ' + state.items.length + ' photo' + (state.items.length === 1 ? '' : 's')
+      + ' loaded and processed';
+    el('doneBody').textContent = parts.join(' · ') + '.';
+    el('doneNote').hidden = false;
+    if (document.hidden) {
+      document.title = '✓ Done — ' + baseTitle;
+      document.addEventListener('visibilitychange', function back() {
+        if (!document.hidden) { document.title = baseTitle; document.removeEventListener('visibilitychange', back); }
+      });
+    }
   }
 
   // Detection input: keep the ORIGINAL-resolution pixels. detectQuadrat()
@@ -937,6 +981,7 @@
     if (state.items.length && !confirm('Discard all ' + state.items.length + ' images?')) return;
     state.items = [];
     state.csvs = [];
+    hideDone();
     render();
   }
 
