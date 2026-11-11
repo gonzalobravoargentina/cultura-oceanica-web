@@ -11,6 +11,11 @@
 # Requiere (una sola vez): Settings → Actions → General → Workflow permissions →
 # "Read and write permissions" + "Allow GitHub Actions to create and approve
 # pull requests".
+#
+# Opcional: Settings → Secrets and variables → Actions → Variables →
+# ARCGIS_KEY = clave de ArcGIS (solo permiso Basemaps, restringida a
+# https://culturaoceanica.org). Se escribe en fotocuadrantes/js/site-config.js
+# y da el mapa satelital de alta resolución (Esri) a todos los visitantes.
 
 name: Actualizar fotocuadrantes
 
@@ -45,11 +50,23 @@ jobs:
           echo "VERSION=$(grep -oE "VERSION = '[^']+'" /tmp/src/js/qd.js | cut -d"'" -f2)" >> "$GITHUB_ENV"
 
       - name: Copiar a fotocuadrantes/
+        env:
+          ARCGIS_KEY: ${{ vars.ARCGIS_KEY }}
         run: |
           mkdir -p fotocuadrantes
           # solo lo que se publica; se borra antes para no dejar archivos viejos
           rm -rf fotocuadrantes/index.html fotocuadrantes/css fotocuadrantes/js fotocuadrantes/vendor
           cp -R /tmp/src/index.html /tmp/src/css /tmp/src/js /tmp/src/vendor fotocuadrantes/
+          # clave de ArcGIS del sitio (variable del repo ARCGIS_KEY) → mapa Esri
+          # de alta resolución para todos los visitantes. Si no hay variable,
+          # queda el site-config.js vacío que trae la herramienta.
+          if [ -n "$ARCGIS_KEY" ]; then
+            python3 -c 'import json,os; print("window.QD_SITE_CONFIG = " + json.dumps({"arcgisKey": os.environ["ARCGIS_KEY"]}) + ";")' \
+              > fotocuadrantes/js/site-config.js
+            echo "site-config.js: clave de ArcGIS cargada"
+          else
+            echo "::warning::Sin variable ARCGIS_KEY: el mapa usará Sentinel-2 (sin Esri)"
+          fi
           printf 'Quadrat Cropper v%s\nOrigen: %s @ %s (%s)\nActualizado: %s\n' \
             "$VERSION" "${{ inputs.repo }}" "${{ inputs.ref }}" "$SHA" "$(date -u +%F)" \
             > fotocuadrantes/VERSION.txt
