@@ -12,7 +12,7 @@
 # "Read and write permissions" + "Allow GitHub Actions to create and approve
 # pull requests".
 #
-# Opcional: Settings → Secrets and variables → Actions → Variables →
+# Opcional: Settings → Secrets and variables → Actions → Variables (o Secrets) →
 # ARCGIS_KEY = clave de ArcGIS (solo permiso Basemaps, restringida a
 # https://culturaoceanica.org). Se escribe en fotocuadrantes/js/site-config.js
 # y da el mapa satelital de alta resolución (Esri) a todos los visitantes.
@@ -51,7 +51,8 @@ jobs:
 
       - name: Copiar a fotocuadrantes/
         env:
-          ARCGIS_KEY: ${{ vars.ARCGIS_KEY }}
+          # sirve guardada como Variable o como Secret (el sitio la publica igual)
+          ARCGIS_KEY: ${{ vars.ARCGIS_KEY || secrets.ARCGIS_KEY }}
         run: |
           mkdir -p fotocuadrantes
           # solo lo que se publica; se borra antes para no dejar archivos viejos
