@@ -23,6 +23,9 @@
 
   var LEAFLET = 'vendor/leaflet-1.9.4/';
   var COLORS = { exif: '#2e9e5b', track: '#1f8fd6', map: '#e8891a', preview: '#ffffff' };
+  // Zoom 22 ≈ 4 cm per screen pixel at 43° S: past each layer's native zoom
+  // the tiles are stretched (blurry), but quadrats 1 m apart stay separate.
+  var MAX_ZOOM = 22;
   var LABELS = { exif: 'camera GPS (EXIF)', track: 'GPS track', map: 'placed on the map' };
 
   var getItems = function () { return []; }, onChange = function () {};
@@ -50,13 +53,18 @@
   function loadCfg() {
     var d = {
       camTz: -new Date().getTimezoneOffset(), useExifOffset: true, csvTz: 0,
-      offset: '', maxGap: 60, edgeTol: 30, overwrite: false, base: 's2'
+      offset: '', maxGap: 60, edgeTol: 30, overwrite: false, base: ''   // '' = best available (Esri if a key exists)
     };
     try { var s = JSON.parse(localStorage.getItem('quadrat.gpsMerge') || '{}'); Object.keys(s).forEach(function (k) { d[k] = s[k]; }); } catch (e) { /* private mode */ }
     return d;
   }
   function saveCfg() { try { localStorage.setItem('quadrat.gpsMerge', JSON.stringify(cfg)); } catch (e) { /* private mode */ } }
-  function arcgisKey() { try { return localStorage.getItem('quadrat.arcgisKey') || ''; } catch (e) { return ''; } }
+  function arcgisKey() {
+    var own = '';
+    try { own = localStorage.getItem('quadrat.arcgisKey') || ''; } catch (e) { /* private mode */ }
+    // a key set in ⚙ wins; otherwise the hosting site's key (js/site-config.js)
+    return own || (root.QD_SITE_CONFIG && root.QD_SITE_CONFIG.arcgisKey) || '';
+  }
 
   // ------------------------------------------------------------ Leaflet
 
@@ -83,7 +91,7 @@
     // layer name is not served (tile errors before any tile loads).
     var s2url = function (y) { return 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-' + y + '_3857/default/g/{z}/{y}/{x}.jpg'; };
     var s2 = L.tileLayer(s2url(2024), {
-      maxNativeZoom: 14, maxZoom: 19,
+      maxNativeZoom: 14, maxZoom: MAX_ZOOM,
       attribution: '<a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless</a> by '
         + '<a href="https://eox.at" target="_blank" rel="noopener">EOX IT Services GmbH</a> '
         + '(Contains modified Copernicus Sentinel data 2024) — CC BY-NC-SA 4.0'
@@ -96,15 +104,18 @@
     out['Satellite — Sentinel-2 cloudless (10 m, EOX)'] = s2;
     var key = arcgisKey();
     if (key) {
-      out['Satellite — Esri World Imagery (high resolution)'] = L.tileLayer(
-        'https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?token=' + encodeURIComponent(key), {
-          maxNativeZoom: 19, maxZoom: 20,
-          attribution: 'Powered by <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a> | '
-            + 'Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community'
-        });
+      var esriBase = 'https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/';
+      var esri = L.tileLayer(esriBase + 'tile/{z}/{y}/{x}?token=' + encodeURIComponent(key), {
+        maxNativeZoom: 19, maxZoom: MAX_ZOOM,
+        attribution: 'Powered by <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a> | '
+          + 'Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community'
+      });
+      esri._qdTilemap = esriBase + 'tilemap/';
+      esri._qdToken = key;
+      out['Satellite — Esri World Imagery (high resolution)'] = esri;
     }
     out['Map — OpenStreetMap'] = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
+      maxNativeZoom: 19, maxZoom: MAX_ZOOM,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
     });
     return out;
@@ -114,13 +125,16 @@
     if (map) return Promise.resolve(map);
     return loadLeaflet().then(function (lib) {
       L = lib;
-      map = L.map('mapView', { preferCanvas: true, worldCopyJump: true }).setView([-42, -64], 4);
+      map = L.map('mapView', { preferCanvas: true, worldCopyJump: true, maxZoom: MAX_ZOOM }).setView([-42, -64], 4);
       layers = makeBaseLayers();
       var names = Object.keys(layers);
-      var pick = names.filter(function (n) { return n.indexOf(cfg.base === 'esri' ? 'Esri' : cfg.base === 'osm' ? 'OpenStreetMap' : 'Sentinel') >= 0; })[0] || names[0];
+      var want = cfg.base === 'osm' ? 'OpenStreetMap' : cfg.base === 's2' ? 'Sentinel' : 'Esri';
+      var pick = names.filter(function (n) { return n.indexOf(want) >= 0; })[0]
+        || names.filter(function (n) { return n.indexOf('Sentinel') >= 0; })[0] || names[0];
       layers[pick].addTo(map);
       layerControl = L.control.layers(layers, null, { collapsed: true }).addTo(map);
       L.control.scale({ imperial: false }).addTo(map);
+      map.on('moveend baselayerchange', adjustEsriNative);
       map.on('baselayerchange', function (e) {
         cfg.base = /Esri/.test(e.name) ? 'esri' : /OpenStreetMap/.test(e.name) ? 'osm' : 's2';
         saveCfg();
@@ -131,6 +145,44 @@
       map.on('click', onMapClick);
       return map;
     });
+  }
+
+  /**
+   * Esri World Imagery is deeper in some places than others (z19 on many
+   * coasts, z17 on parts of Patagonia). Requesting a level it doesn't have
+   * returns grey "no data" tiles. Ask Esri's tilemap service how deep the
+   * imagery goes around the map centre and stretch the deepest real level
+   * instead (maxNativeZoom). Cached per ~5 km cell; on any error keep z19.
+   */
+  var nativeCache = {};
+  function tileXY(lat, lon, z) {
+    var n = Math.pow(2, z), r = lat * Math.PI / 180;
+    return { x: Math.floor((lon + 180) / 360 * n),
+             y: Math.floor((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n) };
+  }
+  function esriHasTile(layer, z, lat, lon) {
+    var t = tileXY(lat, lon, z);
+    var url = layer._qdTilemap + z + '/' + t.y + '/' + t.x + '/1/1?f=json&token=' + encodeURIComponent(layer._qdToken);
+    return fetch(url).then(function (r) { return r.json(); })
+      .then(function (j) { return !!(j && j.data && j.data[0]); });
+  }
+  function adjustEsriNative() {
+    if (!map) return;
+    var layer = null;
+    Object.keys(layers).forEach(function (k) { if (layers[k]._qdTilemap && map.hasLayer(layers[k])) layer = layers[k]; });
+    if (!layer || map.getZoom() < 16) return;
+    var c = map.getCenter(), cell = tileXY(c.lat, c.lng, 13), key = cell.x + '/' + cell.y;
+    var apply = function (z) {
+      if (layer.options.maxNativeZoom !== z) { layer.options.maxNativeZoom = z; layer.redraw(); }
+    };
+    if (nativeCache[key]) { apply(nativeCache[key]); return; }
+    var z = 19;
+    (function probe() {
+      esriHasTile(layer, z, c.lat, c.lng).then(function (ok) {
+        if (ok || z <= 15) { nativeCache[key] = z; apply(z); return; }
+        z--; probe();
+      }).catch(function () { /* keep the current setting */ });
+    })();
   }
 
   /** Rebuild the basemap list (after the ArcGIS key changes in ⚙). */
@@ -184,7 +236,7 @@
     active().forEach(function (it) { var p = QDGeo.position(it); if (p) pts.push([p.latitude, p.longitude]); });
     if (st.track) st.track.points.forEach(function (p, i) { if (i % 20 === 0) pts.push([p.lat, p.lon]); });
     if (!pts.length) return false;
-    map.fitBounds(L.latLngBounds(pts).pad(0.2), { maxZoom: 17 });
+    map.fitBounds(L.latLngBounds(pts).pad(0.2), { maxZoom: 19 });
     return true;
   }
 
