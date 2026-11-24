@@ -8,7 +8,7 @@ El sitio es estático y se publica con GitHub Pages desde la rama `main`.
 
 ## Herramientas
 
-La portada (`/`) lleva a tres herramientas, una por cada verbo: **Explorar**, **Visualizar** y **Analizar**.
+La portada (`/`) lleva a las herramientas, agrupadas por verbo: **Explorar**, **Visualizar** y **Analizar**.
 
 ### Explorar · Guía de Especies Submarinas — [`/guia/`](https://culturaoceanica.org/guia/)
 
@@ -44,6 +44,19 @@ Herramienta para preparar fotocuadrantes de monitoreo bentónico (protocolos MBO
 
 Esta carpeta es **una copia publicada**, no el código fuente (ver [Cómo se actualiza Fotocuadrantes](#cómo-se-actualiza-fotocuadrantes)). La herramienta original es de MBON ([marinebon/quadrat-cropper-js](https://github.com/marinebon/quadrat-cropper-js)); esta versión incluye mejoras hechas en el fork [gonzalobravoargentina/quadrat-cropper-js](https://github.com/gonzalobravoargentina/quadrat-cropper-js) y propuestas al original como pull requests.
 
+### Analizar · Video Transecta — [`/videotransecta/`](https://culturaoceanica.org/videotransecta/)
+
+Conteo de piedras (u otros objetos) en video transectas, en el navegador.
+
+- **Videos locales:** se abren o arrastran desde la computadora y **no se suben**.
+- **Categorías:** vienen cargadas *Blanca chica*, *Blanca grande*, *Roja* y *Negra* (teclas 1–4); se pueden agregar, renombrar o borrar.
+- **Anotar:** se elige la categoría y se hace clic en el video sobre cada piedra. Queda un círculo del color de la categoría (centro transparente); los puntos pueden ir pegados.
+- **Cobertura:** una barra verde/roja muestra qué tramos del video se vieron y cuáles se saltearon; ⏭ lleva al próximo hueco.
+- **Navegación:** velocidad de 0,1× a 4×, saltos de 2 a 60 s, cuadro a cuadro, deshacer.
+- **Descargar datos:** un Excel (`.xlsx`) con tres hojas: **Totales** (total de cada categoría), **Por video** (piedras por video y categoría, con ceros, y % del video revisado) y **Puntos** (una fila por piedra: video, tiempo, categoría, posición en píxeles, nota, anotador). El Excel se arma en el navegador, sin librerías.
+- Los datos se guardan solos en el navegador hasta descargarlos.
+- **Formatos:** MP4/MOV en H.264 funciona en todos los navegadores; H.265/HEVC solo en Safari y en Chrome de Mac.
+
 ---
 
 ## Estructura del sitio
@@ -62,6 +75,7 @@ Esta carpeta es **una copia publicada**, no el código fuente (ver [Cómo se act
 ├── rodolitos/            → Visor 3D de rodolitos
 │   ├── index.html
 │   └── assets/           →   app.js, modelo, Three.js, fuente, logo y licencias
+├── videotransecta/       → Anotador de videos (index.html + app.js, sin librerías)
 ├── fotocuadrantes/       → Quadrat Cropper (copia publicada, no editar a mano)
 │   ├── index.html, css/, js/, vendor/
 │   └── VERSION.txt       →   versión, rama y commit de origen de la copia
@@ -115,6 +129,7 @@ python3 -m http.server 8000
 # → http://localhost:8000/guia/
 # → http://localhost:8000/rodolitos/
 # → http://localhost:8000/fotocuadrantes/
+# → http://localhost:8000/videotransecta/
 ```
 
 Hace falta un servidor (no alcanza con abrir el `index.html` con doble clic): la guía carga JSON y Fotocuadrantes usa Web Workers, y ninguno de los dos funciona desde `file://`.

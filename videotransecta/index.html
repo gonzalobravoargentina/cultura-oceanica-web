@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Transecta · Cultura Oceánica</title>
+<meta name="description" content="Contá piedras u otros objetos en video transectas desde el navegador y descargá los datos en Excel. Los videos no se suben.">
+<link rel="stylesheet" href="/assets/co-theme.css">
+<style>
+/* ============================================================
+   VIDEO TRANSECTA — conteo en video transectas, en el navegador
+   - Cuadros de muestreo: N cuadros equidistantes entre el inicio y el
+     fin de la transecta; en cada uno se cuenta todo (categorías "por cuadro").
+   - Conteo continuo: categorías que se cuentan mientras corre el video.
+   Los videos se leen del disco (URL.createObjectURL): nunca se suben.
+   Todo se guarda en localStorage y se exporta en CSV.
+   ============================================================ */
+:root { --vt-panel: var(--co-navy-mid); --vt-line: var(--co-navy-border); --vt-ok: #52c98a; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--co-navy); color: var(--co-white); font-family: var(--co-font-body); font-size: 15px; }
+a { color: var(--co-teal); }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+.btn { background: var(--co-navy-light); border: 1px solid var(--vt-line); border-radius: var(--co-radius);
+  padding: 6px 12px; color: var(--co-white); transition: background var(--co-transition), border-color var(--co-transition); }
+.btn:hover { border-color: var(--co-teal); }
+.btn.primary { background: var(--co-teal); color: var(--co-navy); border-color: var(--co-teal); font-weight: 600; }
+.btn.primary:hover { background: #33d6df; }
+.btn.ok { background: var(--vt-ok); border-color: var(--vt-ok); color: var(--co-navy); font-weight: 600; }
+.btn.sm { padding: 3px 9px; font-size: .85rem; }
+.btn:disabled { opacity: .4; cursor: default; }
+input[type=text], input[type=number], select { background: var(--co-navy); border: 1px solid var(--vt-line);
+  border-radius: var(--co-radius); padding: 6px 8px; }
+input:focus, select:focus { outline: none; border-color: var(--co-teal); }
+
+main { padding: 84px var(--co-pad-x) 40px; max-width: 1500px; margin: 0 auto; }
+.head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; margin-bottom: 16px; }
+.head h1 { font-family: var(--co-font-display); font-weight: 800; letter-spacing: 1px; text-transform: uppercase; font-size: 2rem; margin: 6px 0 0; }
+.head-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.head-actions label { color: var(--co-text-dim); font-size: .85rem; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; }
+@media (max-width: 1000px) { .layout { grid-template-columns: 1fr; } }
+.panel { background: var(--vt-panel); border: 1px solid var(--vt-line); border-radius: var(--co-radius-lg); padding: 14px; }
+aside.panel { position: sticky; top: 70px; align-self: start; max-height: calc(100vh - 86px); overflow: auto; }
+@media (max-width: 1000px) { aside.panel { position: static; max-height: none; } }
+.panel h2 { font-family: var(--co-font-display); text-transform: uppercase; letter-spacing: 2px; font-size: .8rem;
+  color: var(--co-text-dim); margin: 0 0 10px; font-weight: 700; }
+.ann-panel { margin-top: 18px; }
+@media (max-width: 640px) { .sitenav-links a:not(.active) { display: none; } .tablewrap { max-height: none; } }
+
+/* video */
+.stage { position: relative; background: #000; border-radius: var(--co-radius); overflow: hidden; aspect-ratio: 16/9;
+  display: flex; align-items: center; justify-content: center; }
+.stage video { width: 100%; height: 100%; object-fit: contain; display: none; }
+.stage.has-video video { display: block; }
+.stage.armed video { cursor: crosshair; }
+.drop { text-align: center; color: var(--co-text-dim); padding: 30px; }
+.drop b { color: var(--co-white); }
+.stage.has-video .drop { display: none; }
+.stage.dragover { outline: 2px dashed var(--co-teal); outline-offset: -8px; }
+.pts { position: absolute; inset: 0; pointer-events: none; }
+.pt { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; border: 3px solid;
+  background: transparent; pointer-events: auto; cursor: pointer; box-shadow: 0 0 0 1px rgba(0,0,0,.55), inset 0 0 0 1px rgba(0,0,0,.55); }
+.pt.sel { width: 34px; height: 34px; margin: -17px 0 0 -17px; border-width: 4px; box-shadow: 0 0 0 2px #fff, inset 0 0 0 1px rgba(0,0,0,.55); }
+.pts.marking .pt { pointer-events: none; }          /* while marking, clicks go through: points can touch */
+.flash { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); padding: 6px 14px; border-radius: 20px;
+  font-weight: 600; color: var(--co-navy); opacity: 0; transition: opacity .25s; pointer-events: none; white-space: nowrap; }
+.flash.on { opacity: 1; }
+.vname { margin: 8px 0 0; color: var(--co-text-dim); font-size: .85rem; min-height: 1.2em; }
+.vname select { max-width: 100%; }
+.controls { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; }
+.controls .time { font-variant-numeric: tabular-nums; margin-left: auto; color: var(--co-text-dim); }
+.controls .time b { color: var(--co-white); }
+
+
+/* timeline */
+.timeline { position: relative; margin-top: 10px; background: var(--co-navy); border: 1px solid var(--vt-line);
+  border-radius: var(--co-radius); cursor: pointer; user-select: none; min-height: 26px; overflow: hidden; }
+.tl-seen { position: relative; height: 8px; background: rgba(240,112,112,.28); border-bottom: 1px solid var(--vt-line); }
+.tl-seen div { position: absolute; top: 0; bottom: 0; background: var(--vt-ok); }
+.tl-axis { position: relative; height: 18px; border-bottom: 1px solid var(--vt-line); font-size: .7rem; color: var(--co-muted); }
+.tl-axis span { position: absolute; top: 2px; transform: translateX(-50%); white-space: nowrap; }
+.tl-lane { position: relative; height: 14px; border-bottom: 1px solid rgba(255,255,255,.03); }
+.tl-mark { position: absolute; top: 2px; width: 3px; height: 10px; margin-left: -1px; border-radius: 1px; }
+.tl-mark.sel { outline: 2px solid #fff; }
+.tl-head { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--co-error); pointer-events: none; }
+.seenbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; font-size: .85rem; color: var(--co-text-dim); }
+.seenbar b { color: var(--co-white); font-variant-numeric: tabular-nums; }
+.sw { display: inline-block; width: 12px; height: 8px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+
+/* categories */
+.cat-add { display: grid; grid-template-columns: 1fr auto; gap: 6px; margin-bottom: 10px; }
+.cat-add input { min-width: 0; }
+.cats { display: flex; flex-direction: column; gap: 6px; }
+.cat { display: grid; grid-template-columns: 26px 1fr auto auto; gap: 6px; align-items: center;
+  background: var(--co-navy-light); border: 1px solid var(--vt-line); border-radius: var(--co-radius); padding: 6px 8px; }
+.cat.active { border-color: var(--co-teal); box-shadow: 0 0 0 1px var(--co-teal) inset; background: rgba(0,201,212,.12); }
+.cat .key { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 4px; border: none;
+  font-weight: 700; color: var(--co-navy); font-family: var(--co-font-display); }
+.cat .name { background: none; border: 1px solid transparent; padding: 2px 4px; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cat .name:hover { border-color: var(--vt-line); }
+.cat .n { color: var(--co-text-dim); font-variant-numeric: tabular-nums; min-width: 2ch; text-align: right; }
+.cat .del { background: none; border: none; color: var(--co-muted); padding: 2px 4px; }
+.cat .del:hover { color: var(--co-error); }
+.empty { color: var(--co-muted); font-size: .9rem; }
+.hint { color: var(--co-muted); font-size: .8rem; margin: 10px 0 0; line-height: 1.6; }
+.howto { margin: 14px 0 0; padding: 10px 12px; border-radius: var(--co-radius); background: var(--co-navy); border: 1px solid var(--vt-line);
+  font-size: .85rem; color: var(--co-text-dim); line-height: 1.55; }
+.howto h3 { margin: 0 0 6px; font-size: .8rem; font-family: var(--co-font-display); letter-spacing: 1.5px; text-transform: uppercase; color: var(--co-white); }
+.howto ol { margin: 0; padding-left: 18px; }
+.howto li + li { margin-top: 4px; }
+.howto b { color: var(--co-white); }
+kbd { background: var(--co-navy-light); border: 1px solid var(--vt-line); border-bottom-width: 2px; border-radius: 3px;
+  padding: 0 4px; font-size: .75rem; font-family: var(--co-font-system); }
+
+/* table */
+.ann-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ann-head h2 { margin: 0; }
+.tablewrap { max-height: 420px; overflow: auto; margin-top: 8px; border: 1px solid var(--vt-line); border-radius: var(--co-radius); }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th, td { padding: 5px 8px; border-bottom: 1px solid var(--vt-line); text-align: left; }
+th { position: sticky; top: 0; background: var(--co-navy-light); font-weight: 600; color: var(--co-text-dim); font-size: .8rem; z-index: 1; }
+td.t { font-variant-numeric: tabular-nums; white-space: nowrap; }
+td input[type=text] { width: 100%; min-width: 120px; padding: 3px 6px; }
+td select { padding: 3px 6px; max-width: 170px; }
+tr.near td { background: rgba(0, 201, 212, .08); }
+tr.sel td { background: rgba(0, 201, 212, .18); }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.rowbtn { background: none; border: none; color: var(--co-text-dim); padding: 2px 5px; }
+.rowbtn:hover { color: var(--co-teal); }
+.rowbtn.x:hover { color: var(--co-error); }
+.status { color: var(--co-text-dim); font-size: .85rem; }
+.err { color: var(--co-warm); margin: 8px 0 0; font-size: .9rem; }
+footer.vt-foot { padding: 24px var(--co-pad-x); color: var(--co-muted); font-size: .8rem; text-align: center; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+
+<nav class="sitenav">
+  <a class="sitenav-brand" href="/">CULTURA <span>OCEÁNICA</span></a>
+  <div class="sitenav-links">
+    <a href="/guia/">Guía</a>
+    <a href="/rodolitos/">Rodolitos</a>
+    <a href="/fotocuadrantes/">Fotocuadrantes</a>
+    <a href="/videotransecta/" class="active">Video</a>
+  </div>
+</nav>
+
+<main>
+  <div class="head">
+    <div>
+      <span class="co-eyebrow">Analizar · Video</span>
+      <h1>Video Transecta</h1>
+    </div>
+    <div class="head-actions">
+      <label for="annotator">Anotador/a</label>
+      <input type="text" id="annotator" placeholder="Nombre" size="14">
+      <button class="btn primary" id="btnExport" type="button" title="Excel con los totales por categoría, los totales por video y un listado de todos los puntos">⬇ Descargar datos</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <section class="panel" aria-label="Video">
+      <div class="stage" id="stage">
+        <video id="video" playsinline preload="auto"></video>
+        <div class="drop">
+          <p><b>Arrastrá un video acá</b> o</p>
+          <button class="btn primary" id="btnOpen" type="button">Abrir video…</button>
+          <p class="hint">MP4 o MOV. El video no se sube: se reproduce desde tu computadora.</p>
+          <p class="hint" id="codecs"></p>
+        </div>
+        <div class="pts" id="pts"></div>
+                <div class="flash" id="flash"></div>
+      </div>
+      <input type="file" id="videoInput" accept="video/*,.mp4,.mov,.m4v,.webm,.mkv" multiple hidden>
+      <div class="vname" id="vname"></div>
+      <p class="err" id="verr" hidden></p>
+
+      <div class="controls">
+        <button class="btn" id="bBack" type="button" title="Retroceder (Shift+←)">−10 s</button>
+        <button class="btn" id="bFrameB" type="button" title="Cuadro de video anterior (,)">◀︎❘</button>
+        <button class="btn primary" id="bPlay" type="button" title="Reproducir / pausar (Espacio)" style="min-width:64px">▶</button>
+        <button class="btn" id="bFrameF" type="button" title="Cuadro de video siguiente (.)">❘▶︎</button>
+        <button class="btn" id="bFwd" type="button" title="Adelantar (Shift+→)">+10 s</button>
+        <select id="jump" title="Cuánto saltan los botones − / + y Shift+flechas">
+          <option value="2">salto 2 s</option><option value="5">salto 5 s</option><option value="10" selected>salto 10 s</option>
+          <option value="15">salto 15 s</option><option value="30">salto 30 s</option><option value="60">salto 60 s</option>
+        </select>
+        <select id="speed" title="Velocidad">
+          <option value="0.1">0,1×</option><option value="0.25">0,25×</option><option value="0.5">0,5×</option><option value="0.75">0,75×</option>
+          <option value="1" selected>1×</option><option value="1.5">1,5×</option><option value="2">2×</option><option value="4">4×</option>
+        </select>
+        <button class="btn" id="btnMore" type="button" title="Abrir otro video">＋ Video</button>
+        <span class="time"><b id="tCur">0:00.0</b> / <span id="tDur">0:00</span></span>
+      </div>
+
+      <div class="timeline" id="timeline" title="Clic para ir a ese momento">
+        <div class="tl-seen" id="tlSeen" title="Verde: tramos vistos (reproduciendo hasta 2× o cuadro a cuadro). Rojo: salteados."></div>
+        <div class="tl-axis" id="tlAxis"></div>
+        <div id="tlLanes"></div>
+        <div class="tl-head" id="tlHead" style="left:0"></div>
+      </div>
+      <div class="seenbar">
+        <span><span class="sw" style="background:var(--vt-ok)"></span>visto <span class="sw" style="background:rgba(240,112,112,.5);margin-left:8px"></span>sin ver</span>
+        <span>Revisado: <b id="seenPct">—</b></span>
+        <button class="btn sm" id="btnGap" type="button" title="Ir al próximo tramo salteado (N)">⏭ Próximo hueco sin ver</button>
+        <button class="btn sm" id="btnSeenReset" type="button" title="Empezar de nuevo el registro de lo visto en este video">Reiniciar</button>
+      </div>
+    </section>
+
+    <aside class="panel" aria-label="Categorías">
+      <h2>Categorías</h2>
+      <form class="cat-add" id="catForm">
+        <label class="sr" for="catName">Nueva categoría</label>
+        <input type="text" id="catName" placeholder="Agregar otra categoría" autocomplete="off">
+        <button class="btn primary" type="submit">Agregar</button>
+      </form>
+      <div class="cats" id="cats"></div>
+      <div class="howto">
+        <h3>Cómo anotar</h3>
+        <ol>
+          <li><b>Elegí la categoría</b>: clic en ella o su tecla (1, 2, 3…). Queda resaltada.</li>
+          <li><b>Hacé clic en el video</b> sobre cada piedra de esa categoría. Queda un círculo de su color.</li>
+          <li>Contá cada piedra <b>una sola vez</b>, por ejemplo cuando cruza el caño. Bajá la velocidad (0,1× – 0,5×) o pausá si hay muchas.</li>
+          <li>La barra <b>verde/roja</b> muestra qué partes viste; <b>⏭</b> te lleva a lo que salteaste.</li>
+          <li>Al terminar, <b>⬇ Descargar datos</b> baja un Excel.</li>
+        </ol>
+      </div>
+      <p class="hint">
+        <kbd>Espacio</kbd> play/pausa · <kbd>←</kbd><kbd>→</kbd> ±1 s · <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> salto elegido ·
+        <kbd>,</kbd><kbd>.</kbd> cuadro a cuadro · <kbd>Ctrl</kbd>+<kbd>Z</kbd> deshacer · <kbd>Esc</kbd> soltar categoría ·
+        doble clic en el nombre = renombrar
+      </p>
+    </aside>
+  </div>
+
+  <section class="panel ann-panel" aria-label="Puntos">
+    <div class="ann-head">
+      <h2>Puntos <span class="status" id="annCount"></span></h2>
+      <span class="status">Se guardan solos en este navegador.</span>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Tiempo</th><th>Categoría</th><th>Posición (px)</th><th>Nota</th><th></th></tr></thead>
+        <tbody id="annBody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer class="vt-foot">
+  Cultura Oceánica · Video Transecta v2.3 · Los videos y los datos quedan en tu computadora ·
+  Ideas de interfaz inspiradas en <a href="https://biigle.de" target="_blank" rel="noopener">BIIGLE</a>.
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
