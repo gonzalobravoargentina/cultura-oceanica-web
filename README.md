@@ -8,7 +8,7 @@ El sitio es estático y se publica con GitHub Pages desde la rama `main`.
 
 ## Herramientas
 
-La portada (`/`) lleva a las herramientas, agrupadas por verbo: **Explorar**, **Visualizar** y **Analizar**.
+La portada (`/`) lleva a las cuatro herramientas, agrupadas por verbo: **Explorar** (Guía), **Visualizar** (Rodolitos) y **Analizar** (Fotocuadrantes y Video Transecta). El menú de arriba de cada página enlaza a todas.
 
 ### Explorar · Guía de Especies Submarinas — [`/guia/`](https://culturaoceanica.org/guia/)
 
@@ -32,7 +32,21 @@ Visor 3D de la morfología de los rodolitos fruticosos (algas rojas calcáreas d
 - **Motor:** Three.js r128, incluido en `rodolitos/assets/`. No necesita servicios externos; solo la foto del ambiente se carga desde Wikimedia Commons al pulsar su botón.
 - **Inserción en otras páginas:** se puede embeber en Wix u otros sitios con un `<iframe>` (ver [`RODOLITOS.md`](RODOLITOS.md)).
 
-### Analizar · Fotocuadrantes (Quadrat Cropper) — [`/fotocuadrantes/`](https://culturaoceanica.org/fotocuadrantes/)
+### Analizar · Fotocuadrantes — [`/fotocuadrantes/`](https://culturaoceanica.org/fotocuadrantes/)
+
+Conteo de piedras y cobertura de roca y arena en fotocuadrantes, en el navegador.
+
+- **Fotos locales:** se abren fotos sueltas o una carpeta (o se arrastran) y **no se suben**. Se analizan de a una, con ◀ ▶ o las flechas.
+- **Categorías:** vienen cargadas *Blanca chica*, *Blanca grande*, *Roja* y *Negra* (teclas 1–4), las mismas de Video Transecta; se pueden agregar, renombrar o borrar.
+- **Contar:** se elige la categoría y se hace clic sobre cada piedra (círculo de su color, centro transparente). Zoom con la rueda del mouse y desplazamiento arrastrando, para ver de cerca.
+- **Densidad:** cada conteo se lleva a ind/m² dividiendo por el área del cuadrante (por defecto 0,0625 m² = 25 × 25 cm; se puede cambiar).
+- **Cobertura:** en cada foto se escribe el % de roca y el % de arena; el resto se informa como *otro*. Avisa si suman más de 100.
+- **Seguimiento:** cada foto se marca como analizada (**Enter** pasa a la siguiente); una tabla muestra el estado y los datos de todas.
+- **Descargar datos:** un Excel con hojas separadas: **Conteos** (n por categoría y foto), **Densidad** (ind/m²), **Cobertura (%)** y **Puntos** (posición de cada piedra).
+- Los datos se guardan solos en el navegador, por nombre de foto, hasta descargarlos.
+- Un botón abre en otra pestaña el **Quadrat Cropper** ([`/fotocuadrantes/cropper/`](https://culturaoceanica.org/fotocuadrantes/cropper/)), para recortar el cuadrante de las fotos antes de analizarlas.
+
+### Quadrat Cropper — [`/fotocuadrantes/cropper/`](https://culturaoceanica.org/fotocuadrantes/cropper/)
 
 Herramienta para preparar fotocuadrantes de monitoreo bentónico (protocolos MBON Pole to Pole) antes de anotarlos en CoralNet.
 
@@ -42,7 +56,7 @@ Herramienta para preparar fotocuadrantes de monitoreo bentónico (protocolos MBO
 - **Pestaña Mapa:** muestra las fotos en un mapa satelital. Las que no tienen GPS se pueden ubicar con un clic, cruzándolas con un track GPS por hora, o con las coordenadas del CSV.
 - **Privacidad:** todo corre en el navegador; las fotos no se suben a ningún servidor.
 
-Esta carpeta es **una copia publicada**, no el código fuente (ver [Cómo se actualiza Fotocuadrantes](#cómo-se-actualiza-fotocuadrantes)). La herramienta original es de MBON ([marinebon/quadrat-cropper-js](https://github.com/marinebon/quadrat-cropper-js)); esta versión incluye mejoras hechas en el fork [gonzalobravoargentina/quadrat-cropper-js](https://github.com/gonzalobravoargentina/quadrat-cropper-js) y propuestas al original como pull requests.
+La carpeta `fotocuadrantes/cropper/` es **una copia publicada**, no el código fuente (ver [Cómo se actualiza el Quadrat Cropper](#cómo-se-actualiza-el-quadrat-cropper)). La herramienta original es de MBON ([marinebon/quadrat-cropper-js](https://github.com/marinebon/quadrat-cropper-js)); esta versión incluye mejoras hechas en el fork [gonzalobravoargentina/quadrat-cropper-js](https://github.com/gonzalobravoargentina/quadrat-cropper-js) y propuestas al original como pull requests.
 
 ### Analizar · Video Transecta — [`/videotransecta/`](https://culturaoceanica.org/videotransecta/)
 
@@ -63,7 +77,7 @@ Conteo de piedras (u otros objetos) en video transectas, en el navegador.
 
 ```
 /
-├── index.html            → Portada (una sola pantalla: hero con foto y tres tarjetas)
+├── index.html            → Portada (una sola pantalla: hero con foto y cuatro tarjetas)
 ├── assets/               → Recursos compartidos por todo el sitio
 │   ├── co-theme.css      →   sistema de diseño (colores, tipografía, espaciado)
 │   ├── hero-home.*       →   fotos y video de la portada
@@ -76,11 +90,12 @@ Conteo de piedras (u otros objetos) en video transectas, en el navegador.
 │   ├── index.html
 │   └── assets/           →   app.js, modelo, Three.js, fuente, logo y licencias
 ├── videotransecta/       → Anotador de videos (index.html + app.js, sin librerías)
-├── fotocuadrantes/       → Quadrat Cropper (copia publicada, no editar a mano)
-│   ├── index.html, css/, js/, vendor/
-│   └── VERSION.txt       →   versión, rama y commit de origen de la copia
+├── fotocuadrantes/       → Fotocuadrantes: conteo y cobertura en fotos (index.html + app.js)
+│   └── cropper/          →   Quadrat Cropper (copia publicada, no editar a mano)
+│       ├── index.html, css/, js/, vendor/
+│       └── VERSION.txt   →   versión, rama y commit de origen de la copia
 ├── .github/workflows/
-│   └── actualizar-fotocuadrantes.yml → copia la herramienta desde su repo
+│   └── actualizar-fotocuadrantes.yml → copia el Quadrat Cropper desde su repo
 ├── DESIGN.md             → guía del sistema de diseño
 ├── RODOLITOS.md          → créditos del visor y cómo insertarlo en Wix
 └── CNAME                 → dominio culturaoceanica.org
@@ -99,25 +114,25 @@ Conteo de piedras (u otros objetos) en video transectas, en el navegador.
 - **Librerías:**
   - Guía: Leaflet desde CDN (cdnjs).
   - Rodolitos: Three.js incluido.
-  - Fotocuadrantes: Leaflet incluido en `vendor/` (funciona sin CDN), con Web Workers para procesar miles de fotos.
+  - Quadrat Cropper: Leaflet incluido en `fotocuadrantes/cropper/vendor/` (funciona sin CDN), con Web Workers para procesar miles de fotos.
 - **Responsivo:** pensado para celular y escritorio. La portada ocupa una sola pantalla y tiene imagen de fondo para mobile.
 
 ---
 
-## Cómo se actualiza Fotocuadrantes
+## Cómo se actualiza el Quadrat Cropper
 
 El código del Quadrat Cropper **no se edita en este repo**. Se desarrolla en el fork [`gonzalobravoargentina/quadrat-cropper-js`](https://github.com/gonzalobravoargentina/quadrat-cropper-js); la rama `culturaoceanica` apunta siempre a la última versión.
 
 Para publicar una versión nueva:
 
 1. Ir a **Actions → "Actualizar fotocuadrantes" → Run workflow**. Por defecto usa el fork y la rama `culturaoceanica`.
-2. El workflow copia `index.html`, `css/`, `js/` y `vendor/` a `fotocuadrantes/`, actualiza `VERSION.txt` y abre un **pull request**.
+2. El workflow copia `index.html`, `css/`, `js/` y `vendor/` a `fotocuadrantes/cropper/` (el anotador de `fotocuadrantes/` no se toca), actualiza `VERSION.txt` y abre un **pull request**.
 3. Revisar y **mergear el PR**. GitHub Pages publica la versión nueva.
-4. Comprobar la versión que muestra la app (o `fotocuadrantes/VERSION.txt`). Si se ve la anterior, recargar sin caché (Cmd+Shift+R).
+4. Comprobar la versión que muestra la app (o `fotocuadrantes/cropper/VERSION.txt`). Si se ve la anterior, recargar sin caché (Cmd+Shift+R).
 
 **Configuración, una sola vez:**
 - Settings → Actions → General → Workflow permissions: activar **Read and write permissions** y **Allow GitHub Actions to create and approve pull requests**.
-- Opcional: en Settings → Secrets and variables → Actions, crear una Variable o un Secret **`ARCGIS_KEY`**. Es una clave de ArcGIS con permiso solo de *Basemaps*, restringida a `https://culturaoceanica.org`. El workflow la escribe en `fotocuadrantes/js/site-config.js` y da a todos los visitantes el mapa satelital de alta resolución de Esri. La clave **solo** vive en este repo, nunca en el código fuente de la herramienta.
+- Opcional: en Settings → Secrets and variables → Actions, crear una Variable o un Secret **`ARCGIS_KEY`**. Es una clave de ArcGIS con permiso solo de *Basemaps*, restringida a `https://culturaoceanica.org`. El workflow la escribe en `fotocuadrantes/cropper/js/site-config.js` y da a todos los visitantes el mapa satelital de alta resolución de Esri. La clave **solo** vive en este repo, nunca en el código fuente de la herramienta.
 
 ---
 
@@ -129,10 +144,11 @@ python3 -m http.server 8000
 # → http://localhost:8000/guia/
 # → http://localhost:8000/rodolitos/
 # → http://localhost:8000/fotocuadrantes/
+# → http://localhost:8000/fotocuadrantes/cropper/
 # → http://localhost:8000/videotransecta/
 ```
 
-Hace falta un servidor (no alcanza con abrir el `index.html` con doble clic): la guía carga JSON y Fotocuadrantes usa Web Workers, y ninguno de los dos funciona desde `file://`.
+Hace falta un servidor (no alcanza con abrir el `index.html` con doble clic): la guía carga JSON y el Quadrat Cropper usa Web Workers, y ninguno de los dos funciona desde `file://`.
 
 **Para agregar una herramienta nueva:**
 1. Crear la carpeta `nombre/` con su `index.html`.
@@ -149,4 +165,4 @@ Desarrollado por **Gonzalo Bravo** (IBIOMAR–CONICET / UNPSJB) en el marco de l
 - **Contenido del sitio:** [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.es).
 - **Datos de terceros:** iNaturalist, Wikipedia, Wikispecies, WoRMS, FishBase y AlgaeBase conservan sus propias licencias y condiciones de uso.
 - **Rodolitos:** créditos y licencias detallados en [`RODOLITOS.md`](RODOLITOS.md). Three.js (MIT), Montserrat (OFL 1.1).
-- **Fotocuadrantes:** Quadrat Cropper, de [MBON / marinebon](https://github.com/marinebon/quadrat-cropper-js). Leaflet (BSD-2) en `fotocuadrantes/vendor/`.
+- **Quadrat Cropper:** de [MBON / marinebon](https://github.com/marinebon/quadrat-cropper-js). Leaflet (BSD-2) en `fotocuadrantes/cropper/vendor/`.

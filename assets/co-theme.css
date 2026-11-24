@@ -188,6 +188,11 @@
   .sitenav-links { gap: 16px; }
   .sitenav-links a { font-size: .65rem; }
 }
+/* four tools no longer fit in a phone's top bar: keep only the current one
+   (the brand goes back to the home page, where the cards list them all) */
+@media (max-width: 560px) {
+  .sitenav-links a:not(.active) { display: none; }
+}
 
 /* ── RESPONSIVE HELPERS ─────────────────────────────────────── */
 @media (max-width: 700px) {

@@ -204,6 +204,14 @@ html, body {
 }
 .by-oceanar:hover { color: rgba(255,255,255,.65); }
 
+/* four portals: keep them inside one screen on shorter desktop windows */
+@media (max-height: 820px) and (min-width: 601px) {
+  .portals { bottom: 40px; gap: 8px; }
+  .portal { padding: 12px 20px 14px; gap: 4px; }
+  .portal-arrow { margin-top: 4px; }
+}
+@media (max-height: 640px) and (min-width: 601px) { .portal-desc { display: none; } }
+
 /* ── RESPONSIVE ───────────────────────────────────────────── */
 @media (max-width: 600px) {
   /* Use dvh (dynamic viewport height) so the hero never extends below
@@ -218,8 +226,13 @@ html, body {
     left: 20px;
     width: calc(100vw - 40px);
   }
-  .portal { padding: 12px 16px 14px; }
+  /* four portals: 2 × 2 grid so they stay below the wordmark */
+  .portals { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .portal { padding: 10px 12px 12px; gap: 3px; }
+  .portal-name { font-size: .95rem; }
+  .portal-arrow { margin-top: 4px; }
   .portal-desc { display: none; }
+  .sitenav-links { display: none; }   /* the cards are the menu on the phone home */
   /* Vertical photo for portrait mobile */
   .hero-bg {
     background-image: url('/assets/hero-home-mobile.jpg');
@@ -256,6 +269,8 @@ html, body {
     <div class="sitenav-links">
       <a href="/guia/">Guía</a>
       <a href="/rodolitos/">Rodolitos</a>
+      <a href="/fotocuadrantes/">Fotocuadrantes</a>
+      <a href="/videotransecta/">Video</a>
     </div>
   </nav>
 
@@ -287,7 +302,13 @@ html, body {
     <a class="portal" href="/fotocuadrantes/">
       <div class="portal-eyebrow">Analizar</div>
       <div class="portal-name">Fotocuadrantes</div>
-      <div class="portal-desc">Herramienta de análisis de fotocuadrantes para monitoreo bentónico</div>
+      <div class="portal-desc">Conteo de piedras y cobertura de roca y arena en fotocuadrantes, con recorte del cuadrante</div>
+      <div class="portal-arrow">Ingresar</div>
+    </a>
+    <a class="portal" href="/videotransecta/">
+      <div class="portal-eyebrow">Analizar</div>
+      <div class="portal-name">Video Transecta</div>
+      <div class="portal-desc">Conteo de piedras a lo largo de video transectas submarinas</div>
       <div class="portal-arrow">Ingresar</div>
     </a>
   </div>
