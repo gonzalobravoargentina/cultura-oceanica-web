@@ -41,8 +41,9 @@ Conteo de piedras y cobertura de roca y arena en fotocuadrantes, en el navegador
 - **Contar:** se elige la categoría y se hace clic sobre cada piedra (círculo de su color, centro transparente). Zoom con la rueda del mouse y desplazamiento arrastrando, para ver de cerca.
 - **Densidad:** cada conteo se lleva a ind/m² dividiendo por el área del cuadrante (por defecto 0,0625 m² = 25 × 25 cm; se puede cambiar).
 - **Cobertura:** en cada foto se escribe el % de roca y el % de arena; el resto se informa como *otro*. Avisa si suman más de 100.
+- **Medir (📏, tecla M):** dos clics marcan una distancia y la dan en cm. La escala sale del área: se asume que la foto es el cuadrante recortado (25 cm de lado por defecto). Si la foto incluye más que el cuadrante, **Calibrar**: se marca algo de largo conocido (p. ej. un lado del marco) y se escribe cuánto mide; esa escala queda solo para esa foto.
 - **Seguimiento:** cada foto se marca como analizada (**Enter** pasa a la siguiente); una tabla muestra el estado y los datos de todas.
-- **Descargar datos:** un Excel con hojas separadas: **Conteos** (n por categoría y foto), **Densidad** (ind/m²), **Cobertura (%)** y **Puntos** (posición de cada piedra).
+- **Descargar datos:** un Excel con hojas separadas: **Conteos** (n por categoría y foto), **Densidad** (ind/m²), **Cobertura (%)**, **Medidas** (largo en cm y px, escala usada) y **Puntos** (posición de cada piedra).
 - Los datos se guardan solos en el navegador, por nombre de foto, hasta descargarlos; el botón **🗑 Borrar anotaciones** los borra todos (las categorías quedan).
 - Un botón abre en otra pestaña el **Quadrat Cropper** ([`/fotocuadrantes/cropper/`](https://culturaoceanica.org/fotocuadrantes/cropper/)), para recortar el cuadrante de las fotos antes de analizarlas.
 

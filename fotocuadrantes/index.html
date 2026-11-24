@@ -61,6 +61,22 @@ aside.panel { position: sticky; top: 70px; align-self: start; max-height: calc(1
 .stage.has-photo .drop { display: none; }
 .stage.dragover { outline: 2px dashed var(--co-teal); outline-offset: -8px; }
 .pts { position: absolute; inset: 0; pointer-events: none; }
+.meas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.meas line { stroke: #ffe14d; stroke-width: 2.5; }
+.meas line.halo { stroke: rgba(0,0,0,.7); stroke-width: 5; }
+.meas line.cal { stroke: #ff8fab; }
+.meas line.sel { stroke: #fff; }
+.meas circle { fill: #ffe14d; stroke: rgba(0,0,0,.7); stroke-width: 1.5; }
+.meas text { fill: #fff; font: 600 13px var(--co-font-body); paint-order: stroke; stroke: rgba(0,0,0,.8); stroke-width: 3px; }
+.stage.measuring { cursor: crosshair; }
+.btn.on { background: #ffe14d; border-color: #ffe14d; color: var(--co-navy); font-weight: 600; }
+.mlist { width: 100%; border-collapse: collapse; font-size: .88rem; margin-top: 6px; }
+.mlist td { padding: 2px 6px; font-variant-numeric: tabular-nums; }
+.mlist td.num { text-align: right; }
+.mlist .x { background: none; border: none; color: var(--co-muted); }
+.mlist .x:hover { color: var(--co-error); }
+.scaleinfo { font-size: .82rem; color: var(--co-text-dim); line-height: 1.5; }
+.scaleinfo b { color: var(--co-white); }
 .pt { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; border: 3px solid;
   background: transparent; pointer-events: auto; cursor: pointer; box-shadow: 0 0 0 1px rgba(0,0,0,.6), inset 0 0 0 1px rgba(0,0,0,.6); }
 .pt.sel { width: 30px; height: 30px; margin: -15px 0 0 -15px; border-width: 4px; box-shadow: 0 0 0 2px #fff, inset 0 0 0 1px rgba(0,0,0,.6); }
@@ -79,7 +95,8 @@ aside.panel { position: sticky; top: 70px; align-self: start; max-height: calc(1
 .nav .cur { font-variant-numeric: tabular-nums; color: var(--co-white); font-weight: 600; }
 .nav .fname { color: var(--co-text-dim); font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40ch; }
 .nav .grow { flex: 1; }
-.photodata { display: grid; grid-template-columns: 1.3fr 1fr; gap: 12px; margin-top: 12px; }
+.photodata { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 12px; margin-top: 12px; }
+@media (max-width: 1200px) { .photodata { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 760px) { .photodata { grid-template-columns: 1fr; } }
 .box { border: 1px solid var(--fq-line); border-radius: var(--co-radius); background: var(--co-navy); padding: 10px 12px; }
 .box h3 { margin: 0 0 8px; font-size: .78rem; font-family: var(--co-font-display); letter-spacing: 1.5px; text-transform: uppercase; color: var(--co-text-dim); }
@@ -182,6 +199,7 @@ footer.fq-foot { padding: 24px var(--co-pad-x); color: var(--co-muted); font-siz
           </div>
           <p class="hint">JPG o PNG. Las fotos no se suben: se ven desde tu computadora.</p>
         </div>
+        <svg class="meas" id="meas"></svg>
         <div class="pts" id="pts"></div>
         <div class="donetag">✓ ANALIZADA</div>
         <div class="zoombox" id="zoombox" hidden>
@@ -200,6 +218,7 @@ footer.fq-foot { padding: 24px var(--co-pad-x); color: var(--co-muted); font-siz
         <button class="btn" id="bNext" type="button" title="Foto siguiente (→)">Siguiente ▶</button>
         <span class="fname" id="fname"></span>
         <span class="grow"></span>
+        <button class="btn" id="bMeasure" type="button" title="Medir distancias: clic en un extremo y clic en el otro (M)">📏 Medir</button>
         <button class="btn" id="bDone" type="button" title="Marcar la foto como analizada y pasar a la siguiente (Enter)">✓ Foto analizada</button>
         <span class="status">Analizadas: <b id="doneN">0/0</b></span>
         <button class="btn sm" id="bMore" type="button" title="Agregar más fotos">＋ Fotos</button>
@@ -218,6 +237,11 @@ footer.fq-foot { padding: 24px var(--co-pad-x); color: var(--co-muted); font-siz
             <span class="other">Otro: <b id="cOtro">—</b></span>
             <span class="warn" id="cWarn"></span>
           </div>
+        </div>
+        <div class="box">
+          <h3>Medidas en esta foto</h3>
+          <div class="scaleinfo" id="scaleInfo"></div>
+          <table class="mlist" id="mlist"></table>
         </div>
       </div>
     </section>
@@ -244,13 +268,14 @@ footer.fq-foot { padding: 24px var(--co-pad-x); color: var(--co-muted); font-siz
           <li><b>Elegí la categoría</b> (clic o tecla 1–4) y <b>hacé clic sobre cada piedra</b>. Queda un círculo de su color.</li>
           <li>Para ver de cerca: <b>rueda del mouse</b> para acercar y <b>arrastrar</b> para moverte.</li>
           <li>Escribí el <b>% de roca y de arena</b> de la foto.</li>
+          <li>Para medir: <b>📏 Medir</b> (o tecla M), clic en un extremo y clic en el otro. La escala sale del lado del cuadrante (√ área), o se calibra sobre algo de largo conocido.</li>
           <li><b>Enter</b> (o ✓ Foto analizada) y pasás a la siguiente.</li>
           <li>Al terminar, <b>⬇ Descargar datos</b>: Excel con conteos, densidad por m², cobertura y puntos en hojas separadas.</li>
         </ol>
       </div>
       <p class="hint">
         <kbd>←</kbd><kbd>→</kbd> foto anterior/siguiente · <kbd>Enter</kbd> analizada y siguiente · <kbd>+</kbd><kbd>−</kbd><kbd>0</kbd> zoom ·
-        <kbd>Ctrl</kbd>+<kbd>Z</kbd> deshacer · <kbd>Supr</kbd> borrar punto elegido · <kbd>Esc</kbd> soltar categoría · doble clic en el nombre = renombrar
+        <kbd>Ctrl</kbd>+<kbd>Z</kbd> deshacer · <kbd>Supr</kbd> borrar punto elegido · <kbd>M</kbd> medir · <kbd>Esc</kbd> soltar categoría / salir de medir · doble clic en el nombre = renombrar
       </p>
 
       <div class="cropper-card">
@@ -275,10 +300,10 @@ footer.fq-foot { padding: 24px var(--co-pad-x); color: var(--co-muted); font-siz
 </main>
 
 <footer class="fq-foot">
-  Cultura Oceánica · Fotocuadrantes v1.1 · Las fotos y los datos quedan en tu computadora ·
+  Cultura Oceánica · Fotocuadrantes v1.2 · Las fotos y los datos quedan en tu computadora ·
   Ideas de interfaz inspiradas en <a href="https://biigle.de" target="_blank" rel="noopener">BIIGLE</a>.
 </footer>
 
-<script src="app.js?v=1.1"></script>
+<script src="app.js?v=1.2"></script>
 </body>
 </html>
