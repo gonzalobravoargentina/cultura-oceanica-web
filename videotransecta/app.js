@@ -289,7 +289,8 @@
 
   // ── Table ──────────────────────────────────────────────────────────
   function renderTable() {
-    var mine = curAnns().sort(function (a, b) { return a.t - b.t; });
+    // newest first: the point just marked is always the top row
+    var mine = curAnns().sort(function (a, b) { return a.created < b.created ? 1 : a.created > b.created ? -1 : 0; });
     $('annCount').textContent = mine.length ? '(' + mine.length + ')' : '';
     if (!mine.length) { $('annBody').innerHTML = '<tr><td colspan="5" class="empty">' + (cur ? 'Sin puntos en este video.' : 'Abrí un video para empezar.') + '</td></tr>'; return; }
     var opts = function (a) { return cats.map(function (c) {
