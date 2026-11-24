@@ -113,6 +113,7 @@
   // ── Points ─────────────────────────────────────────────────────────
   function addPoint(cat, x, y) {
     var r = curRec();
+    if (!r.w && img.naturalWidth) { r.w = img.naturalWidth; r.h = img.naturalHeight; }   // e.g. after "Borrar anotaciones"
     var pt = { id: uid(), cat: cat.id, x: +x.toFixed(5), y: +y.toFixed(5), who: $('annotator').value.trim(), created: new Date().toISOString() };
     r.pts.push(pt); selId = pt.id; save();
     flash(cat.name + ' · ' + r.pts.filter(function (q) { return q.cat === cat.id; }).length, cat.color);
@@ -354,6 +355,20 @@
     var el = document.createElement('a'); el.href = URL.createObjectURL(blob);
     el.download = 'fotocuadrantes_' + new Date().toISOString().slice(0, 10) + '.xlsx';
     document.body.appendChild(el); el.click(); setTimeout(function () { URL.revokeObjectURL(el.href); el.remove(); }, 1000);
+  });
+
+  // ── Reset: wipe every annotation kept in this browser ──────────────
+  // Points, rock/sand cover and "analizada" marks of ALL photos. Categories,
+  // quadrat area and annotator name stay; the photos loaded now stay open.
+  $('btnReset').addEventListener('click', function () {
+    this.blur();
+    var names = Object.keys(data).filter(function (k) { var r = data[k]; return r.pts.length || r.done || r.roca != null || r.arena != null; });
+    var nPts = names.reduce(function (s, k) { return s + data[k].pts.length; }, 0);
+    if (!names.length) { flash('No hay anotaciones guardadas', '#92b8cc'); return; }
+    if (!confirm('Se van a borrar ' + nPts + ' punto(s) y las coberturas de ' + names.length + ' foto(s), y las marcas de «analizada».\n\n'
+      + 'Esto no se puede deshacer. Si los necesitás, tocá primero «⬇ Descargar datos».\n\n¿Borrar todas las anotaciones?')) return;
+    data = {}; selId = null; save();
+    renderAll(); flash('Anotaciones borradas', '#f07070');
   });
 
   // ── Wiring ─────────────────────────────────────────────────────────

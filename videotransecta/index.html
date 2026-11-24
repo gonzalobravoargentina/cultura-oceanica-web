@@ -112,6 +112,10 @@ aside.panel { position: sticky; top: 70px; align-self: start; max-height: calc(1
 .cat .del:hover { color: var(--co-error); }
 .empty { color: var(--co-muted); font-size: .9rem; }
 .hint { color: var(--co-muted); font-size: .8rem; margin: 10px 0 0; line-height: 1.6; }
+.setting { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; margin-top: 14px; font-size: .85rem; color: var(--co-text-dim); }
+.setting input { width: 64px; padding: 4px 6px; }
+.setting label { display: inline-flex; gap: 4px; align-items: center; }
+.setting b { color: var(--co-white); }
 .howto { margin: 14px 0 0; padding: 10px 12px; border-radius: var(--co-radius); background: var(--co-navy); border: 1px solid var(--vt-line);
   font-size: .85rem; color: var(--co-text-dim); line-height: 1.55; }
 .howto h3 { margin: 0 0 6px; font-size: .8rem; font-family: var(--co-font-display); letter-spacing: 1.5px; text-transform: uppercase; color: var(--co-white); }
@@ -197,7 +201,7 @@ footer.vt-foot { padding: 24px var(--co-pad-x); color: var(--co-muted); font-siz
           <option value="15">salto 15 s</option><option value="30">salto 30 s</option><option value="60">salto 60 s</option>
         </select>
         <select id="speed" title="Velocidad">
-          <option value="0.1">0,1×</option><option value="0.25">0,25×</option><option value="0.5">0,5×</option><option value="0.75">0,75×</option>
+          <option value="0.025">0,025×</option><option value="0.05">0,05×</option><option value="0.1">0,1×</option><option value="0.25">0,25×</option><option value="0.5">0,5×</option><option value="0.75">0,75×</option>
           <option value="1" selected>1×</option><option value="1.5">1,5×</option><option value="2">2×</option><option value="4">4×</option>
         </select>
         <button class="btn" id="btnMore" type="button" title="Abrir otro video">＋ Video</button>
@@ -234,12 +238,19 @@ footer.vt-foot { padding: 24px var(--co-pad-x); color: var(--co-muted); font-siz
         <button class="btn primary" type="submit">Agregar</button>
       </form>
       <div class="cats" id="cats"></div>
+      <div class="setting">
+        <span>Área de la transecta</span>
+        <label>ancho <input type="number" id="trW" min="0.01" step="0.1" value="1"> m</label>
+        <label>× largo <input type="number" id="trL" min="0.01" step="1" value="20"> m</label>
+        <span>= <b id="trA">20</b> m² (para la densidad)</span>
+      </div>
+
       <div class="howto">
         <h3>Cómo anotar</h3>
         <ol>
           <li><b>Elegí la categoría</b>: clic en ella o su tecla (1, 2, 3…). Queda resaltada.</li>
           <li><b>Hacé clic en el video</b> sobre cada piedra de esa categoría. Queda un círculo de su color.</li>
-          <li>Contá cada piedra <b>una sola vez</b>, por ejemplo cuando cruza el caño. Bajá la velocidad (0,1× – 0,5×) o pausá si hay muchas.</li>
+          <li>Contá cada piedra <b>una sola vez</b>, por ejemplo cuando cruza el caño. Bajá la velocidad (0,025× – 0,5×) o pausá si hay muchas.</li>
           <li>La barra <b>verde/roja</b> muestra qué partes viste; <b>⏭</b> te lleva a lo que salteaste.</li>
           <li>El <b>⏱ reloj</b> arranca con el primer play. Pausalo si cortás, y tocá <b>■ Terminé</b> cuando anotaste todo el video.</li>
           <li>Al terminar, escribí tu nombre en <b>Anotador/a</b> (arriba) y tocá <b>⬇ Descargar datos</b>: baja un Excel.</li>
@@ -268,10 +279,10 @@ footer.vt-foot { padding: 24px var(--co-pad-x); color: var(--co-muted); font-siz
 </main>
 
 <footer class="vt-foot">
-  Cultura Oceánica · Video Transecta v2.6 · Los videos y los datos quedan en tu computadora ·
+  Cultura Oceánica · Video Transecta v2.8 · Los videos y los datos quedan en tu computadora ·
   Ideas de interfaz inspiradas en <a href="https://biigle.de" target="_blank" rel="noopener">BIIGLE</a>.
 </footer>
 
-<script src="app.js?v=2.6"></script>
+<script src="app.js?v=2.8"></script>
 </body>
 </html>

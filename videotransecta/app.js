@@ -73,7 +73,7 @@
     if (videos.length < 2) { el.textContent = '🎞 ' + cur.name; return; }
     el.innerHTML = '🎞 <select id="vpick" aria-label="Video">' + videos.map(function (v, i) {
       return '<option value="' + i + '"' + (v === cur ? ' selected' : '') + '>' + esc(v.name) + '</option>'; }).join('') + '</select>';
-    $('vpick').onchange = function () { video.pause(); selectVideo(videos[+this.value]); };
+    $('vpick').onchange = function () { pauseAll(); selectVideo(videos[+this.value]); };
   }
   // ── Formats: the app itself runs in any modern browser on any system;
   // what changes between systems is which VIDEO CODECS the browser decodes.
@@ -103,7 +103,7 @@
     if (cur && video.videoWidth === 0) video.dispatchEvent(new Event('error'));
   });
   // playbackRate is reset by the browser when a new source loads: re-apply it
-  video.addEventListener('loadedmetadata', function () { video.playbackRate = +$('speed').value; renderAll(); });
+  video.addEventListener('loadedmetadata', function () { setNativeRate(); renderAll(); });
   video.addEventListener('play', function () {
     syncPlay(); lastSeenT = video.currentTime;
     if (cur && !tmOf(cur.name).started) tmRun(true);   // the clock starts with the first play
@@ -121,7 +121,7 @@
   });
   video.addEventListener('seeking', function () { lastSeenT = null; });
   video.addEventListener('seeked', function () { lastSeenT = video.currentTime; tick(); });
-  function syncPlay() { $('bPlay').textContent = video.paused ? '▶' : '❚❚'; }
+  function syncPlay() { $('bPlay').textContent = isPlaying() ? '❚❚' : '▶'; }
 
   if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {     // frame-rate estimate for , and .
     var lastMT = null, samples = [];
@@ -136,8 +136,31 @@
     video.requestVideoFrameCallback(onFrame);
   }
   function seek(t) { if (!cur || !isFinite(video.duration)) return; video.currentTime = Math.max(0, Math.min(video.duration, t)); }
-  function step(n) { video.pause(); var t0 = video.currentTime, t1 = t0 + n / (fps || 30); if (n > 0) addSeen(t0, t1); seek(t1); }
-  function togglePlay() { if (!cur) return; if (video.paused) video.play(); else video.pause(); }
+  function step(n) { pauseAll(); var t0 = video.currentTime, t1 = t0 + n / (fps || 30); if (n > 0) addSeen(t0, t1); seek(t1); }
+  // ── Playback, including speeds below what browsers allow ───────────
+  // Browsers refuse playbackRate < 0.0625. Slower speeds are played by
+  // stepping one video frame at a time on a timer ("slow mode").
+  var MIN_NATIVE = 0.0625, slow = null;
+  function rate() { return +$('speed').value || 1; }
+  function isPlaying() { return !!slow || !video.paused; }
+  function setNativeRate() { try { video.playbackRate = Math.max(MIN_NATIVE, rate()); } catch (e) {} }
+  function startSlow() {
+    if (!cur || slow) return;
+    if (!tmOf(cur.name).started) tmRun(true);
+    var every = Math.max(40, 1000 / (fps || 30) / rate());     // ms between frames
+    slow = setInterval(function () {
+      var t0 = video.currentTime, t1 = t0 + 1 / (fps || 30);
+      if (!isFinite(video.duration) || t1 >= video.duration) { pauseAll(); return; }
+      addSeen(t0, t1); video.currentTime = t1;
+    }, every);
+    syncPlay();
+  }
+  function pauseAll() { if (slow) { clearInterval(slow); slow = null; } video.pause(); syncPlay(); }
+  function togglePlay() {
+    if (!cur) return;
+    if (isPlaying()) { pauseAll(); return; }
+    if (rate() < MIN_NATIVE) startSlow(); else { setNativeRate(); video.play(); }
+  }
   function jumpS() { return +$('jump').value || 10; }
   function syncJump() { $('bBack').textContent = '−' + jumpS() + ' s'; $('bFwd').textContent = '+' + jumpS() + ' s'; }
 
@@ -174,10 +197,10 @@
     seenOf().forEach(function (x) { if (x[0] > t + 0.25) holes.push([t, x[0]]); t = Math.max(t, x[1]); });
     if (!holes.length) {
       if (t >= d - 0.25) { flash('Ya se vio todo el video ✓', '#52c98a'); return; }
-      video.pause(); seek(t); flash('No quedaron huecos. Seguís desde ' + fmt(t), '#52c98a'); return;
+      pauseAll(); seek(t); flash('No quedaron huecos. Seguís desde ' + fmt(t), '#52c98a'); return;
     }
     var g = holes.filter(function (x) { return x[0] > video.currentTime + 0.3; })[0] || holes[0];
-    video.pause(); seek(g[0]); flash('Hueco sin ver: ' + fmt(g[0]) + '–' + fmt(g[1]), '#f07070');
+    pauseAll(); seek(g[0]); flash('Hueco sin ver: ' + fmt(g[0]) + '–' + fmt(g[1]), '#f07070');
   }
 
   // ── Annotation timer (per video) ───────────────────────────────────
@@ -260,7 +283,10 @@
     var f = frameRect(), st = $('stage').getBoundingClientRect(), t = video.currentTime;
     if (!f) { box.innerHTML = ''; return; }
     // a point stays on screen 0.3 s around its moment (and always when paused on it)
-    box.innerHTML = curAnns().filter(function (a) { return Math.abs(a.t - t) <= 0.3; }).map(function (a) {
+    // paused: only the points of this very frame; playing: a point flashes for 0.15 s after it was
+    // marked and is gone as soon as the video moves on (old rings must not cover the next stones)
+    var tolP = Math.max(0.6 / (fps || 30), 0.02), playing = isPlaying();
+    box.innerHTML = curAnns().filter(function (a) { var d = t - a.t; return playing ? d >= -0.01 && d <= 0.15 : Math.abs(d) <= tolP; }).map(function (a) {
       var c = catById(a.cat) || { color: '#888', name: '?' };
       return '<div class="pt' + (a.id === selId ? ' sel' : '') + '" data-id="' + a.id + '" style="left:' + (f.left - st.left + a.x * f.width)
         + 'px;top:' + (f.top - st.top + a.y * f.height) + 'px;border-color:' + c.color + '" title="' + esc(c.name) + '"></div>';
@@ -335,7 +361,7 @@
   $('timeline').addEventListener('click', function (e) {
     if (!cur || !isFinite(video.duration)) return;
     var m = e.target.closest('.tl-mark');
-    if (m) { var a = annById(m.dataset.id); if (a) { selId = a.id; video.pause(); seek(a.t); renderAll(); scrollToSel(); } return; }
+    if (m) { var a = annById(m.dataset.id); if (a) { selId = a.id; pauseAll(); seek(a.t); renderAll(); scrollToSel(); } return; }
     var r = this.getBoundingClientRect(); seek((e.clientX - r.left) / r.width * video.duration);
   });
 
@@ -363,7 +389,7 @@
     var a = annById(tr.dataset.id); if (!a) return;
     var b = e.target.closest('[data-act]');
     if (b && b.dataset.act === 'del') { removeAnn(a.id); return; }
-    if (b && b.dataset.act === 'go') { video.pause(); seek(a.t); }
+    if (b && b.dataset.act === 'go') { pauseAll(); seek(a.t); }
     if (selId !== a.id) { selId = a.id; markSel(); renderPoints(); renderTimeline(); }
   });
   $('annBody').addEventListener('change', function (e) {
@@ -495,13 +521,32 @@
     var tms = 0; vids.forEach(function (v) { if (timers[v]) tms += tmElapsed(timers[v]); });
     if (tms) resumen.push(['', ''], ['tiempo de anotación', hms(tms)]);
     if (vids.length > 1) resumen.push(['', ''], ['videos', vids.length]);
+    // densities (ind/m²) = count / transect area (width × length). Wide: one row per video,
+    // one column per category, and a last row with the mean of each column over the videos
+    var ar = trArea(), A = ar.w * ar.l, r4 = function (x) { return +x.toFixed(4); };
+    var dens = [['video', 'area_m2'].concat(cats.map(function (c) { return c.name; }), ['TOTAL'])], sums = cats.map(function () { return 0; }), sumT = 0;
+    vids.forEach(function (v) {
+      var ds = cats.map(function (c, k) { var d = anns.filter(function (a) { return a.video === v && a.cat === c.id; }).length / A; sums[k] += d; return d; });
+      var dt = ds.reduce(function (x, y) { return x + y; }, 0); sumT += dt;
+      dens.push([v, r4(A)].concat(ds.map(r4), [r4(dt)]));
+    });
+    dens.push(['PROMEDIO', r4(A)].concat(sums.map(function (x) { return r4(x / vids.length); }), [r4(sumT / vids.length)]));
     var base = (videos.length === 1 && cur ? cur.name.replace(/\.[^.]+$/, '') : 'videotransecta') + '_' + new Date().toISOString().slice(0, 10);
     var blob = xlsx([{ name: 'Totales', rows: resumen, widths: [18, 10] },
                      { name: 'Por video', rows: totales, widths: [28, 16, 8, 16, 13, 16, 20, 20] },
+                     { name: 'Densidad (ind por m2)', rows: dens, widths: [30, 9].concat(cats.map(function () { return 14; }), [10]) },
                      { name: 'Puntos', rows: puntos, widths: [28, 10, 12, 16, 8, 8, 9, 9, 10, 10, 24, 16, 20] }]);
     var el = document.createElement('a'); el.href = URL.createObjectURL(blob); el.download = base + '.xlsx';
     document.body.appendChild(el); el.click(); setTimeout(function () { URL.revokeObjectURL(el.href); el.remove(); }, 1000);
   });
+
+  // ── Transect area (for densities) ──────────────────────────────────
+  var LS_AREA = 'vt.transectArea';
+  (function () { var a = load(LS_AREA, null); if (a) { $('trW').value = a.w; $('trL').value = a.l; } })();
+  function trArea() { var w = parseFloat($('trW').value), l = parseFloat($('trL').value); return { w: w > 0 ? w : 1, l: l > 0 ? l : 20 }; }
+  function renderArea() { var a = trArea(); $('trA').textContent = (+(a.w * a.l).toFixed(3)).toString().replace('.', ','); }
+  ['trW', 'trL'].forEach(function (id) { $(id).addEventListener('input', function () { store(LS_AREA, trArea()); renderArea(); }); });
+  renderArea();
 
   // ── Reset: wipe every annotation kept in this browser ──────────────
   // Points, watched stretches and timers of ALL videos. Categories and the
@@ -514,7 +559,7 @@
     if (!anns.length && !nVid && !Object.keys(seen).length) { flash('No hay anotaciones guardadas', '#92b8cc'); return; }
     if (!confirm('Se van a borrar ' + anns.length + ' punto(s) de ' + nVid + ' video(s), el registro de lo visto y los relojes de anotación.\n\n'
       + 'Esto no se puede deshacer. Si los necesitás, tocá primero «⬇ Descargar datos».\n\n¿Borrar todas las anotaciones?')) return;
-    video.pause();
+    pauseAll();
     anns = []; seen = {}; timers = {}; selId = null;
     save(); store(LS_SEEN, seen); store(LS_TIMER, timers);
     try { ['vt.annotations.v1', 'vt.categories.v1', 'vt.plan.v1'].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}   // leftovers of older versions
@@ -537,7 +582,13 @@
   $('bFwd').onclick = function () { seek(video.currentTime + jumpS()); };
   $('bFrameB').onclick = function () { step(-1); };
   $('bFrameF').onclick = function () { step(1); };
-  $('speed').onchange = function () { video.playbackRate = +this.value; this.blur(); };
+  $('speed').onchange = function () {
+    this.blur(); var wasPlaying = isPlaying();
+    if (slow) { clearInterval(slow); slow = null; }
+    setNativeRate();
+    if (wasPlaying) { if (rate() < MIN_NATIVE) { video.pause(); startSlow(); } else video.play(); }
+    syncPlay();
+  };
   try { var js = localStorage.getItem('vt.jump'); if (js) $('jump').value = js; } catch (e) {}
   syncJump();
   $('jump').onchange = function () { syncJump(); try { localStorage.setItem('vt.jump', this.value); } catch (e) {} this.blur(); };

@@ -25,6 +25,7 @@ button { cursor: pointer; }
 .btn.primary { background: var(--co-teal); color: var(--co-navy); border-color: var(--co-teal); font-weight: 600; }
 .btn.primary:hover { background: #33d6df; }
 .btn.ok { background: var(--fq-ok); border-color: var(--fq-ok); color: var(--co-navy); font-weight: 600; }
+#btnReset:hover { border-color: var(--co-error); color: var(--co-error); }
 .btn.sm { padding: 3px 9px; font-size: .85rem; }
 .btn:disabled { opacity: .4; cursor: default; }
 input[type=text], input[type=number], select { background: var(--co-navy); border: 1px solid var(--fq-line);
@@ -164,6 +165,7 @@ footer.fq-foot { padding: 24px var(--co-pad-x); color: var(--co-muted); font-siz
       <label for="annotator">Anotador/a</label>
       <input type="text" id="annotator" placeholder="Nombre" size="14">
       <a class="btn" href="/fotocuadrantes/cropper/" target="_blank" rel="noopener" title="Recortar el cuadrante de las fotos antes de analizarlas (se abre en otra pestaña)">✂ Quadrat Cropper ↗</a>
+      <button class="btn" id="btnReset" type="button" title="Borrar los puntos, coberturas y fotos analizadas guardados en este navegador (las categorías quedan)">🗑 Borrar anotaciones</button>
       <button class="btn primary" id="btnExport" type="button" title="Excel con hojas de conteos, densidad, cobertura y puntos">⬇ Descargar datos</button>
     </div>
   </div>
@@ -273,10 +275,10 @@ footer.fq-foot { padding: 24px var(--co-pad-x); color: var(--co-muted); font-siz
 </main>
 
 <footer class="fq-foot">
-  Cultura Oceánica · Fotocuadrantes v1.0 · Las fotos y los datos quedan en tu computadora ·
+  Cultura Oceánica · Fotocuadrantes v1.1 · Las fotos y los datos quedan en tu computadora ·
   Ideas de interfaz inspiradas en <a href="https://biigle.de" target="_blank" rel="noopener">BIIGLE</a>.
 </footer>
 
-<script src="app.js?v=1.0"></script>
+<script src="app.js?v=1.1"></script>
 </body>
 </html>

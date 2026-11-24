@@ -43,7 +43,7 @@ Conteo de piedras y cobertura de roca y arena en fotocuadrantes, en el navegador
 - **Cobertura:** en cada foto se escribe el % de roca y el % de arena; el resto se informa como *otro*. Avisa si suman más de 100.
 - **Seguimiento:** cada foto se marca como analizada (**Enter** pasa a la siguiente); una tabla muestra el estado y los datos de todas.
 - **Descargar datos:** un Excel con hojas separadas: **Conteos** (n por categoría y foto), **Densidad** (ind/m²), **Cobertura (%)** y **Puntos** (posición de cada piedra).
-- Los datos se guardan solos en el navegador, por nombre de foto, hasta descargarlos.
+- Los datos se guardan solos en el navegador, por nombre de foto, hasta descargarlos; el botón **🗑 Borrar anotaciones** los borra todos (las categorías quedan).
 - Un botón abre en otra pestaña el **Quadrat Cropper** ([`/fotocuadrantes/cropper/`](https://culturaoceanica.org/fotocuadrantes/cropper/)), para recortar el cuadrante de las fotos antes de analizarlas.
 
 ### Quadrat Cropper — [`/fotocuadrantes/cropper/`](https://culturaoceanica.org/fotocuadrantes/cropper/)
@@ -66,8 +66,10 @@ Conteo de piedras (u otros objetos) en video transectas, en el navegador.
 - **Categorías:** vienen cargadas *Blanca chica*, *Blanca grande*, *Roja* y *Negra* (teclas 1–4); se pueden agregar, renombrar o borrar.
 - **Anotar:** se elige la categoría y se hace clic en el video sobre cada piedra. Queda un círculo del color de la categoría (centro transparente); los puntos pueden ir pegados.
 - **Cobertura:** una barra verde/roja muestra qué tramos del video se vieron y cuáles se saltearon; ⏭ lleva al próximo hueco.
-- **Navegación:** velocidad de 0,1× a 4×, saltos de 2 a 60 s, cuadro a cuadro, deshacer.
-- **Descargar datos:** un Excel (`.xlsx`) con tres hojas: **Totales** (total de cada categoría), **Por video** (piedras por video y categoría, con ceros, y % del video revisado) y **Puntos** (una fila por piedra: video, tiempo, categoría, posición en píxeles, nota, anotador). El Excel se arma en el navegador, sin librerías.
+- **Navegación:** velocidad de 0,025× a 4× (por debajo de 0,0625× avanza cuadro por cuadro, porque los navegadores no permiten menos), saltos de 2 a 60 s, cuadro a cuadro, deshacer.
+- **Reloj de anotación:** arranca con el primer play, se puede pausar y se detiene con «Terminé»; el tiempo sale en el Excel.
+- **Borrar anotaciones:** un botón borra todos los puntos, lo visto y los relojes guardados en el navegador (las categorías quedan).
+- **Descargar datos:** un Excel (`.xlsx`) con cuatro hojas: **Totales** (total de cada categoría), **Por video** (piedras por video y categoría, con ceros, % del video revisado y tiempo de anotación), **Densidad** (ind/m² = total / área de la transecta, por defecto 1 m × 20 m, editable; una fila por video, una columna por categoría y una fila PROMEDIO al final) y **Puntos** (una fila por piedra: video, tiempo, categoría, posición en píxeles, nota, anotador). El Excel se arma en el navegador, sin librerías.
 - Los datos se guardan solos en el navegador hasta descargarlos.
 - **Formatos:** MP4/MOV en H.264 funciona en todos los navegadores; H.265/HEVC solo en Safari y en Chrome de Mac.
 
