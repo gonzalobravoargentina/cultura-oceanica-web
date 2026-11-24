@@ -27,6 +27,7 @@ button { cursor: pointer; }
 .btn.primary { background: var(--co-teal); color: var(--co-navy); border-color: var(--co-teal); font-weight: 600; }
 .btn.primary:hover { background: #33d6df; }
 .btn.ok { background: var(--vt-ok); border-color: var(--vt-ok); color: var(--co-navy); font-weight: 600; }
+.btn.danger:hover, #btnReset:hover { border-color: var(--co-error); color: var(--co-error); }
 .btn.sm { padding: 3px 9px; font-size: .85rem; }
 .btn:disabled { opacity: .4; cursor: default; }
 input[type=text], input[type=number], select { background: var(--co-navy); border: 1px solid var(--vt-line);
@@ -85,6 +86,12 @@ aside.panel { position: sticky; top: 70px; align-self: start; max-height: calc(1
 .tl-mark { position: absolute; top: 2px; width: 3px; height: 10px; margin-left: -1px; border-radius: 1px; }
 .tl-mark.sel { outline: 2px solid #fff; }
 .tl-head { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--co-error); pointer-events: none; }
+.timer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; padding: 8px 12px; border-radius: var(--co-radius);
+  border: 1px solid var(--vt-line); background: var(--co-navy); font-size: .9rem; color: var(--co-text-dim); }
+.timer .clock { font-family: var(--co-font-display); font-size: 1.25rem; font-weight: 700; color: var(--co-white); font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+.timer.running .clock { color: var(--co-teal); }
+.timer.finished { border-color: var(--vt-ok); }
+.timer.finished .clock { color: var(--vt-ok); }
 .seenbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; font-size: .85rem; color: var(--co-text-dim); }
 .seenbar b { color: var(--co-white); font-variant-numeric: tabular-nums; }
 .sw { display: inline-block; width: 12px; height: 8px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
@@ -157,6 +164,7 @@ footer.vt-foot { padding: 24px var(--co-pad-x); color: var(--co-muted); font-siz
     <div class="head-actions">
       <label for="annotator">Anotador/a</label>
       <input type="text" id="annotator" placeholder="Nombre" size="14">
+      <button class="btn" id="btnReset" type="button" title="Borrar todos los puntos, el registro de lo visto y los relojes guardados en este navegador (las categorías quedan)">🗑 Borrar anotaciones</button>
       <button class="btn primary" id="btnExport" type="button" title="Excel con los totales por categoría, los totales por video y un listado de todos los puntos">⬇ Descargar datos</button>
     </div>
   </div>
@@ -196,6 +204,14 @@ footer.vt-foot { padding: 24px var(--co-pad-x); color: var(--co-muted); font-siz
         <span class="time"><b id="tCur">0:00.0</b> / <span id="tDur">0:00</span></span>
       </div>
 
+      <div class="timer" id="timer">
+        <span>⏱ Tiempo de anotación</span>
+        <span class="clock" id="tmClock">0:00:00</span>
+        <span id="tmState">empieza la primera vez que das play</span>
+        <button class="btn sm" id="tmPause" type="button" hidden>⏸ Pausar</button>
+        <button class="btn sm" id="tmStop" type="button" hidden title="Cuando terminaste de anotar todo el video">■ Terminé</button>
+      </div>
+
       <div class="timeline" id="timeline" title="Clic para ir a ese momento">
         <div class="tl-seen" id="tlSeen" title="Verde: tramos vistos (reproduciendo hasta 2× o cuadro a cuadro). Rojo: salteados."></div>
         <div class="tl-axis" id="tlAxis"></div>
@@ -225,6 +241,7 @@ footer.vt-foot { padding: 24px var(--co-pad-x); color: var(--co-muted); font-siz
           <li><b>Hacé clic en el video</b> sobre cada piedra de esa categoría. Queda un círculo de su color.</li>
           <li>Contá cada piedra <b>una sola vez</b>, por ejemplo cuando cruza el caño. Bajá la velocidad (0,1× – 0,5×) o pausá si hay muchas.</li>
           <li>La barra <b>verde/roja</b> muestra qué partes viste; <b>⏭</b> te lleva a lo que salteaste.</li>
+          <li>El <b>⏱ reloj</b> arranca con el primer play. Pausalo si cortás, y tocá <b>■ Terminé</b> cuando anotaste todo el video.</li>
           <li>Al terminar, escribí tu nombre en <b>Anotador/a</b> (arriba) y tocá <b>⬇ Descargar datos</b>: baja un Excel.</li>
         </ol>
       </div>
@@ -251,10 +268,10 @@ footer.vt-foot { padding: 24px var(--co-pad-x); color: var(--co-muted); font-siz
 </main>
 
 <footer class="vt-foot">
-  Cultura Oceánica · Video Transecta v2.4 · Los videos y los datos quedan en tu computadora ·
+  Cultura Oceánica · Video Transecta v2.6 · Los videos y los datos quedan en tu computadora ·
   Ideas de interfaz inspiradas en <a href="https://biigle.de" target="_blank" rel="noopener">BIIGLE</a>.
 </footer>
 
-<script src="app.js"></script>
+<script src="app.js?v=2.6"></script>
 </body>
 </html>

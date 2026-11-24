@@ -61,6 +61,7 @@
     if (first) selectVideo(first);
   }
   function selectVideo(v) {
+    tmPauseAll();
     cur = v; selId = null; $('verr').hidden = true;
     video.src = v.url;
     $('stage').classList.add('has-video');
@@ -103,7 +104,10 @@
   });
   // playbackRate is reset by the browser when a new source loads: re-apply it
   video.addEventListener('loadedmetadata', function () { video.playbackRate = +$('speed').value; renderAll(); });
-  video.addEventListener('play', function () { syncPlay(); lastSeenT = video.currentTime; });
+  video.addEventListener('play', function () {
+    syncPlay(); lastSeenT = video.currentTime;
+    if (cur && !tmOf(cur.name).started) tmRun(true);   // the clock starts with the first play
+  });
   video.addEventListener('pause', function () {
     syncPlay(); var t = video.currentTime;
     if (lastSeenT != null && video.playbackRate <= 2 && t > lastSeenT && t - lastSeenT < 1.5) addSeen(lastSeenT, t);
@@ -175,6 +179,54 @@
     var g = holes.filter(function (x) { return x[0] > video.currentTime + 0.3; })[0] || holes[0];
     video.pause(); seek(g[0]); flash('Hueco sin ver: ' + fmt(g[0]) + '–' + fmt(g[1]), '#f07070');
   }
+
+  // ── Annotation timer (per video) ───────────────────────────────────
+  // Starts the first time the video is played, can be paused, and stops for
+  // good with "Terminé". Saved per video; after a reload it comes back
+  // paused (time with the page closed never counts).
+  var LS_TIMER = 'vt.timer.v1', timers = load(LS_TIMER, {}), tmTick = null;
+  function tmOf(name) { return timers[name] || (timers[name] = { ms: 0, since: null, started: false, finished: false }); }
+  // a clock left running when the page closed comes back paused (at most the last few seconds are lost)
+  Object.keys(timers).forEach(function (k) { timers[k].since = null; });
+  function tmElapsed(t) { return t.ms + (t.since ? Date.now() - t.since : 0); }
+  function hms(ms) { var s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); s = s % 60;
+    return h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }
+  function tmSave() { store(LS_TIMER, timers); }
+  function tmRun(on) {
+    if (!cur) return; var t = tmOf(cur.name);
+    if (on && !t.since && !t.finished) { t.since = Date.now(); t.started = true; }
+    if (!on && t.since) { t.ms += Date.now() - t.since; t.since = null; }
+    tmSave(); renderTimer();
+  }
+  function tmPauseAll() {                          // switching video / leaving: freeze every running clock
+    Object.keys(timers).forEach(function (k) { var t = timers[k]; if (t.since) { t.ms += Date.now() - t.since; t.since = null; } });
+    tmSave();
+  }
+  function renderTimer() {
+    var el = $('timer'), t = cur ? tmOf(cur.name) : null;
+    clearInterval(tmTick); tmTick = null;
+    if (!t) { $('tmClock').textContent = '0:00:00'; $('tmPause').hidden = $('tmStop').hidden = true; return; }
+    $('tmClock').textContent = hms(tmElapsed(t));
+    el.classList.toggle('running', !!t.since); el.classList.toggle('finished', t.finished);
+    $('tmPause').hidden = !t.started || t.finished; $('tmStop').hidden = !t.started;
+    $('tmPause').textContent = t.since ? '⏸ Pausar' : '▶ Seguir';
+    $('tmStop').textContent = t.finished ? '↺ Reabrir' : '■ Terminé';
+    $('tmStop').title = t.finished ? 'Volver a contar tiempo en este video' : 'Cuando terminaste de anotar todo el video';
+    $('tmState').textContent = t.finished ? '✓ video anotado' : t.since ? 'contando' : t.started ? 'en pausa' : 'empieza la primera vez que das play';
+    if (t.since) tmTick = setInterval(function () {
+      var now = Date.now();
+      if (now - t.since > 5000) { t.ms += now - t.since; t.since = now; tmSave(); }   // fold + save every 5 s
+      $('tmClock').textContent = hms(tmElapsed(t));
+    }, 500);
+  }
+  $('tmPause').onclick = function () { this.blur(); if (!cur) return; tmRun(!tmOf(cur.name).since); };
+  $('tmStop').onclick = function () {
+    this.blur(); if (!cur) return; var t = tmOf(cur.name);
+    if (t.finished) { if (!confirm('¿Reabrir el tiempo de anotación de ' + cur.name + '? Va a seguir sumando desde ' + hms(tmElapsed(t)) + '.')) return; t.finished = false; tmSave(); tmRun(true); return; }
+    if (!confirm('¿Terminaste de anotar ' + cur.name + '? El reloj se detiene en ' + hms(tmElapsed(t)) + '.')) return;
+    tmRun(false); t.finished = true; tmSave(); renderTimer(); flash('Tiempo de anotación: ' + hms(t.ms), '#52c98a');
+  };
+  window.addEventListener('pagehide', tmPauseAll);
 
   // ── Points ─────────────────────────────────────────────────────────
   function frameRect() {
@@ -337,7 +389,7 @@
     var d = video.duration; $('tlHead').style.left = (isFinite(d) && d > 0 ? video.currentTime / d * 100 : 0) + '%';
     markNear(); renderPoints();
   }
-  function renderAll() { renderCats(); renderTimeline(); renderSeen(); renderTable(); renderVideoPicker(); tick(); }
+  function renderAll() { renderTimer(); renderCats(); renderTimeline(); renderSeen(); renderTable(); renderVideoPicker(); tick(); }
 
   // ── Excel (.xlsx) without libraries ────────────────────────────────
   // An .xlsx is a ZIP of a few XML files. Cells are written as inline
@@ -426,25 +478,47 @@
       }));
     // totals per video × category (zeros included) and how much of each video was watched
     var vids = []; rows.forEach(function (a) { if (vids.indexOf(a.video) < 0) vids.push(a.video); });
-    var totales = [['video', 'categoria', 'n', 'duracion_video_s', 'revisado_pct']];
+    var totales = [['video', 'categoria', 'n', 'duracion_video_s', 'revisado_pct', 'tiempo_anotacion', 'tiempo_anotacion_min', 'anotacion_terminada']];
     vids.forEach(function (v) {
       var vv = videos.filter(function (x) { return x.name === v; })[0], dur = vv && vv.dur ? vv.dur : (cur && cur.name === v && isFinite(video.duration) ? video.duration : null);
+      var tm = timers[v], ms = tm ? tmElapsed(tm) : 0;
       cats.forEach(function (c) {
         totales.push([v, c.name, anns.filter(function (a) { return a.video === v && a.cat === c.id; }).length,
-                      dur ? +dur.toFixed(2) : '', dur ? +seenPct(v, dur).toFixed(1) : '']);
+                      dur ? +dur.toFixed(2) : '', dur ? +seenPct(v, dur).toFixed(1) : '',
+                      tm && tm.started ? hms(ms) : '', tm && tm.started ? +(ms / 60000).toFixed(1) : '', tm && tm.finished ? 'si' : 'no']);
       });
     });
     // grand total per category over everything annotated (all videos), plus a TOTAL row
     var resumen = [['categoria', 'total']], all = 0;
     cats.forEach(function (c) { var n = anns.filter(function (a) { return a.cat === c.id; }).length; all += n; resumen.push([c.name, n]); });
     resumen.push(['TOTAL', all]);
+    var tms = 0; vids.forEach(function (v) { if (timers[v]) tms += tmElapsed(timers[v]); });
+    if (tms) resumen.push(['', ''], ['tiempo de anotación', hms(tms)]);
     if (vids.length > 1) resumen.push(['', ''], ['videos', vids.length]);
     var base = (videos.length === 1 && cur ? cur.name.replace(/\.[^.]+$/, '') : 'videotransecta') + '_' + new Date().toISOString().slice(0, 10);
     var blob = xlsx([{ name: 'Totales', rows: resumen, widths: [18, 10] },
-                     { name: 'Por video', rows: totales, widths: [28, 16, 8, 16, 13] },
+                     { name: 'Por video', rows: totales, widths: [28, 16, 8, 16, 13, 16, 20, 20] },
                      { name: 'Puntos', rows: puntos, widths: [28, 10, 12, 16, 8, 8, 9, 9, 10, 10, 24, 16, 20] }]);
     var el = document.createElement('a'); el.href = URL.createObjectURL(blob); el.download = base + '.xlsx';
     document.body.appendChild(el); el.click(); setTimeout(function () { URL.revokeObjectURL(el.href); el.remove(); }, 1000);
+  });
+
+  // ── Reset: wipe every annotation kept in this browser ──────────────
+  // Points, watched stretches and timers of ALL videos. Categories and the
+  // annotator name stay. Asks first and reminds to download the data.
+  $('btnReset').addEventListener('click', function () {
+    this.blur();
+    var nv = {}; anns.forEach(function (a) { nv[a.video] = 1; });
+    Object.keys(timers).forEach(function (k) { if (timers[k].started) nv[k] = 1; });
+    var nVid = Object.keys(nv).length;
+    if (!anns.length && !nVid && !Object.keys(seen).length) { flash('No hay anotaciones guardadas', '#92b8cc'); return; }
+    if (!confirm('Se van a borrar ' + anns.length + ' punto(s) de ' + nVid + ' video(s), el registro de lo visto y los relojes de anotación.\n\n'
+      + 'Esto no se puede deshacer. Si los necesitás, tocá primero «⬇ Descargar datos».\n\n¿Borrar todas las anotaciones?')) return;
+    video.pause();
+    anns = []; seen = {}; timers = {}; selId = null;
+    save(); store(LS_SEEN, seen); store(LS_TIMER, timers);
+    try { ['vt.annotations.v1', 'vt.categories.v1', 'vt.plan.v1'].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}   // leftovers of older versions
+    renderAll(); flash('Anotaciones borradas', '#f07070');
   });
 
   // ── Wiring ─────────────────────────────────────────────────────────
