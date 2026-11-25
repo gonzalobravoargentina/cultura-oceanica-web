@@ -492,9 +492,24 @@
     return zip(files);
   }
 
+  // File name for the download: YYYYMMDD_<annotator>_<type>.xlsx (local date;
+  // annotator without accents, spaces or symbols so it is safe on any OS).
+  function exportName(who, type) {
+    var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    var ymd = '' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate());
+    var w = who.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    return ymd + '_' + w + '_' + type + '.xlsx';
+  }
+  // The annotator name is required: it goes into the file name.
+  function needAnnotator() {
+    var who = $('annotator').value.trim();
+    if (!who) { alert('Escribí tu nombre en Anotador/a antes de descargar los datos.'); $('annotator').focus(); }
+    return who;
+  }
+
   $('btnExport').addEventListener('click', function () {
     if (!anns.length) { alert('Todavía no hay puntos para descargar.'); return; }
-    var who = $('annotator').value.trim();
+    var who = needAnnotator(); if (!who) return;
     var rows = anns.slice().sort(function (a, b) { return a.video < b.video ? -1 : a.video > b.video ? 1 : a.t - b.t; });
     var puntos = [['video', 'tiempo_s', 'tiempo', 'categoria', 'x_px', 'y_px', 'x_rel', 'y_rel', 'ancho_px', 'alto_px', 'nota', 'anotador', 'fecha_anotacion']]
       .concat(rows.map(function (a) {
@@ -531,12 +546,11 @@
       dens.push([v, r4(A)].concat(ds.map(r4), [r4(dt)]));
     });
     dens.push(['PROMEDIO', r4(A)].concat(sums.map(function (x) { return r4(x / vids.length); }), [r4(sumT / vids.length)]));
-    var base = (videos.length === 1 && cur ? cur.name.replace(/\.[^.]+$/, '') : 'videotransecta') + '_' + new Date().toISOString().slice(0, 10);
     var blob = xlsx([{ name: 'Totales', rows: resumen, widths: [18, 10] },
                      { name: 'Por video', rows: totales, widths: [28, 16, 8, 16, 13, 16, 20, 20] },
                      { name: 'Densidad (ind por m2)', rows: dens, widths: [30, 9].concat(cats.map(function () { return 14; }), [10]) },
                      { name: 'Puntos', rows: puntos, widths: [28, 10, 12, 16, 8, 8, 9, 9, 10, 10, 24, 16, 20] }]);
-    var el = document.createElement('a'); el.href = URL.createObjectURL(blob); el.download = base + '.xlsx';
+    var el = document.createElement('a'); el.href = URL.createObjectURL(blob); el.download = exportName(who, 'video');
     document.body.appendChild(el); el.click(); setTimeout(function () { URL.revokeObjectURL(el.href); el.remove(); }, 1000);
   });
 

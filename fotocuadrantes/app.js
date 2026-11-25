@@ -403,11 +403,27 @@
     return zip(files);
   }
 
+  // File name for the download: YYYYMMDD_<annotator>_<type>.xlsx (local date;
+  // annotator without accents, spaces or symbols so it is safe on any OS).
+  function exportName(who, type) {
+    var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    var ymd = '' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate());
+    var w = who.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    return ymd + '_' + w + '_' + type + '.xlsx';
+  }
+  // The annotator name is required: it goes into the file name.
+  function needAnnotator() {
+    var who = $('annotator').value.trim();
+    if (!who) { alert('Escribí tu nombre en Anotador/a antes de descargar los datos.'); $('annotator').focus(); }
+    return who;
+  }
+
   $('btnExport').addEventListener('click', function () {
     var names = Object.keys(data).filter(function (k) { var r = data[k]; return r.pts.length || r.done || r.roca != null || r.arena != null || (r.meas && r.meas.length); })
       .sort(function (a, b) { return a.localeCompare(b, undefined, { numeric: true }); });
     if (!names.length) { alert('Todavía no hay datos para descargar.'); return; }
-    var A = area(), who = $('annotator').value.trim();
+    var who = needAnnotator(); if (!who) return;
+    var A = area();
     var head = ['foto', 'analizada'].concat(cats.map(function (c) { return c.name; }), ['total']);
     var conteos = [head], dens = [['foto', 'analizada', 'area_m2'].concat(cats.map(function (c) { return c.name; }), ['total'])];
     var cober = [['foto', 'analizada', 'roca_pct', 'arena_pct', 'otro_pct', 'suma_roca_arena']];
@@ -441,7 +457,7 @@
       { name: 'Puntos', rows: puntos, widths: [30, 16, 8, 8, 9, 9, 10, 10, 16, 20] }
     ]);
     var el = document.createElement('a'); el.href = URL.createObjectURL(blob);
-    el.download = 'fotocuadrantes_' + new Date().toISOString().slice(0, 10) + '.xlsx';
+    el.download = exportName(who, 'cuadrante');
     document.body.appendChild(el); el.click(); setTimeout(function () { URL.revokeObjectURL(el.href); el.remove(); }, 1000);
   });
 
